@@ -1,0 +1,7 @@
+**/__pycache__/
+**/.pytest_cache/
+**/dist/
+.coverage
+htmlcov/
+.DS_Store
+**/.DS_Store
