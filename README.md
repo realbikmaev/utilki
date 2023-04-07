@@ -1,5 +1,7 @@
 # utilki
 
+[![codecov](https://codecov.io/gh/realbikmaev/utilki/branch/main/graph/badge.svg?token=VN0UMT7O9A)](https://codecov.io/gh/realbikmaev/utilki)
+
 utils that are frequently used by me and might be useful for others
 
 ## installation
