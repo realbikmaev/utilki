@@ -12,8 +12,6 @@ pip install utilki
 
 Mixin class that adds `create()` classmethod to dataclass you define as your task params. Useful when you have a lot of container based tasks executed on remote clusters (e.g. Kubernetes, Hashicorp Nomad, etc.). It reads task params from environment variables, parses, and validates them. 
 
-Note: requires you 
-
 ```python
 from utilki import TaskMixin
 
