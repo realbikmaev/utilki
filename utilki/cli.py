@@ -66,7 +66,7 @@ def venv(python_version):
                     return
 
     click.echo(
-        f"Successfully created virtual environment `{venv_name}` with Python version {python_version}"
+        f"Created venv `{venv_name}` with Python version {python_version}"
     )
 
 

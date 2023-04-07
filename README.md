@@ -37,5 +37,7 @@ print(f"lmao: {t.lmao}, type: {type(t.lmao)}")
 ### Venv
 
 ```bash
-utilki venv 3.8.10
+$ utilki venv 3.8.10
+$ Enter venv name: new_venv
+$ Created venv `new_venv` with Python version 3.8.10
 ```
