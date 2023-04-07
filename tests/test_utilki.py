@@ -1,3 +1,4 @@
+from typing import Tuple
 from utilki import TaskMixin
 from dataclasses import dataclass
 from datetime import datetime
@@ -126,3 +127,25 @@ class TypeWeDontSupport(TaskMixin):
 def test_task_create_invalid_type():
     with raises(TypeError, match="Invalid type"):
         TypeWeDontSupport.create()
+
+
+@dataclass
+class TaskTuple(TaskMixin):
+    tuple_of_ints: Tuple[int] = (1, 2, 3)
+    tuple_of_strs: Tuple[str] = ("1", "2", "3")
+    tuple_of_floats: Tuple[float] = (1.0, 2.0, 3.0)
+    tuple_of_bools: Tuple[bool] = (True, False, True)
+
+
+def test_task_create_tuple():
+    os.environ["tuple_of_ints"] = "4,5,6"
+    os.environ["tuple_of_strs"] = "4,5,6"
+    os.environ["tuple_of_floats"] = "4.0,5.0,6.0"
+    os.environ["tuple_of_bools"] = "True,False,true"
+    task = TaskTuple.create()
+    assert task == TaskTuple(
+        tuple_of_ints=(4, 5, 6),
+        tuple_of_strs=("4", "5", "6"),
+        tuple_of_floats=(4.0, 5.0, 6.0),
+        tuple_of_bools=(True, False, True),
+    )
