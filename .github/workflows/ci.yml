@@ -26,14 +26,10 @@ jobs:
           pip install poetry
           poetry install
 
-      - name: Run tests
-        run: poetry run pytest
-
-      - name: Generate coverage report
+      - name: Run tests and generate coverage report
         run: |
-          pip install coverage[toml]
-          poetry run coverage run -m pytest
-          poetry run coverage report
+          pip install pytest-cov
+          poetry run pytest --cov=utilki
           poetry run coverage xml
 
       - name: Upload coverage to Codecov
