@@ -56,6 +56,15 @@ def venv(python_version):
                     return
                 click.echo("Installation successful")
 
+                res = subprocess.run(
+                    ["pyenv", "virtualenv", python_version, venv_name],
+                    capture_output=True,
+                    text=True,
+                )
+                if res.returncode != 0:
+                    click.echo(res.stderr)
+                    return
+
     click.echo(
         f"Successfully created virtual environment `{venv_name}` with Python version {python_version}"
     )
