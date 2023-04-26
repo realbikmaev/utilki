@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 import os
 from pytest import raises, fixture
+from pydantic import BaseModel
 
 
 @dataclass
@@ -149,3 +150,27 @@ def test_task_create_tuple():
         tuple_of_floats=(4.0, 5.0, 6.0),
         tuple_of_bools=(True, False, True),
     )
+
+
+from pydantic.dataclasses import dataclass  # noqa
+
+
+@dataclass
+class TaskPydanticDataclass(TaskMixin):
+    should_i_smoke: bool = False
+
+
+def test_task_create_dataclass():
+    os.environ["should_i_smoke"] = "False"
+    task = TaskPydanticDataclass.create()
+    assert task == TaskPydanticDataclass()
+
+
+class TaskBaseModel(BaseModel, TaskMixin):
+    should_i_smoke: bool = False
+
+
+def test_task_create_base_model():
+    os.environ["should_i_smoke"] = "False"
+    task = TaskBaseModel.create()
+    assert task == TaskBaseModel()

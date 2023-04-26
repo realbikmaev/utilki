@@ -171,6 +171,21 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
+name = "pydantic"
+version = "1.10.7"
+description = "Data validation and settings management using python type hints"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+typing-extensions = ">=4.2.0"
+
+[package.extras]
+dotenv = ["python-dotenv (>=0.10.4)"]
+email = ["email-validator (>=1.0.3)"]
+
+[[package]]
 name = "pyflakes"
 version = "3.0.1"
 description = "passive checker of Python programs"
@@ -227,7 +242,7 @@ python-versions = ">=3.7"
 name = "typing-extensions"
 version = "4.5.0"
 description = "Backported and Experimental Type Hints for Python 3.7+"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -242,7 +257,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8.1"
-content-hash = "b4b01644dd8e64902e9eb7e7ca196d04f1067d0462bcc9d3e282ef07e0e0f8db"
+content-hash = "33312b9f90c46d0827aacda5a5cb0a8d53c1ac30d32064e973cff2f4ab762707"
 
 [metadata.files]
 atomicwrites = []
@@ -261,6 +276,7 @@ platformdirs = []
 pluggy = []
 py = []
 pycodestyle = []
+pydantic = []
 pyflakes = []
 pytest = []
 pytest-cov = []

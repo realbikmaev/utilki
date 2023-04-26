@@ -12,5 +12,9 @@
         "**/.coverage": true,
         "**/htmlcov": true
     },
-    "explorerExclude.backup": {}
+    "explorerExclude.backup": {},
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "python.formatting.provider": "none"
 }

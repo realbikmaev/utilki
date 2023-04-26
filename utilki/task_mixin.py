@@ -7,16 +7,29 @@ import typing
 class TaskMixin:
     @classmethod
     def create(cls):
-        params = [
-            (param.name, param.type)
-            for param in cls.__dataclass_fields__.values()
-        ]
+        params = []
+        try:
+            fields = cls.__dataclass_fields__.values()
+            for field in fields:
+                params.append((field.name, field.type))
+        except AttributeError:
+            fields = cls.__fields__.values()
+            for field in fields:
+                params.append((field.name, field.type_))
         task = cls(**{name: cls.parse(name, type) for name, type in params})
         return task
 
     @classmethod
     def get_default(cls, param):
-        return cls.__dataclass_fields__[param].default
+        try:
+            return cls.__dataclass_fields__[param].default
+        except AttributeError:
+            field = cls.__fields__[param]
+            return (
+                field.default_factory()
+                if field.default_factory
+                else field.default
+            )
 
     @classmethod
     def get_date(cls, param):
