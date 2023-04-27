@@ -33,9 +33,11 @@ class TaskMixin:
 
     @classmethod
     def get_date(cls, param):
-        num_parts = param.split("-")
-        if len(num_parts) in [3, 6]:
-            return datetime(*map(int, num_parts))
+        n = param.split("-")
+        if len(n) == 3:
+            return datetime(n[0], n[1], n[2])
+        elif len(n) == 6:
+            return datetime(n[0], n[1], n[2], n[3], n[4], n[5])
         else:
             raise TypeError("Invalid datetime format")
 
