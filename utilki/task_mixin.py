@@ -28,10 +28,6 @@ class TaskMixin:
         elif hasattr(cls, "__fields__"):
             fields = cls.__fields__.values()
             for field in fields:
-                print("in create")
-                print(f"type of field: {type(field)}")
-                # print(f"dir of field: {dir(field)}")
-                print(f"AAAAA: {field.outer_type_}")
                 params.append((field.name, field.outer_type_))
         task = cls(**{name: cls.parse(name, type) for name, type in params})
         return task
@@ -53,15 +49,9 @@ class TaskMixin:
         if default := os.getenv(name_):
             return default
         if hasattr(cls, "__dataclass_fields__"):
-            print("in dataclass get_default")
             return cls.__dataclass_fields__[name_].default
         elif hasattr(cls, "__fields__"):
-            print("in pydantic get_default")
-            field = cls.__fields__[name_]
-            print(f"field: {field}")
-            value = field.get_default()
-            print(value)
-            return value
+            return cls.__fields__[name_].get_default()
         else:
             raise TypeError("Invalid type")
 
@@ -78,9 +68,8 @@ class TaskMixin:
     @classmethod
     def parse(cls, name_, type_):
         value = cls.get_default(name_)
-        print(f"parsing '{name_}' with type {type_} and value {value}")
+        # print(f"parsing '{name_}' with type {type_} and value {value}")
         if isinstance(value, str):
-            print("is str")
             if type_ == List[int]:
                 return tuple(map(int, value.split(",")))
             elif type_ == List[str]:
@@ -110,7 +99,6 @@ class TaskMixin:
                 else:
                     raise TypeError("Invalid datetime format")
         elif isinstance(value, list):
-            print("is list")
             if type_ in [List[int], List[str], List[float], List[bool]]:
                 return value
         elif type_ == datetime:
