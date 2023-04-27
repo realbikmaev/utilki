@@ -9,11 +9,11 @@ class TaskMixin:
     def create(cls):
         params = []
         try:
-            fields = cls.__dataclass_fields__.values()
+            fields = cls.__dataclass_fields__.values()  # type: ignore
             for field in fields:
                 params.append((field.name, field.type))
         except AttributeError:
-            fields = cls.__fields__.values()
+            fields = cls.__fields__.values()  # type: ignore
             for field in fields:
                 params.append((field.name, field.type_))
         task = cls(**{name: cls.parse(name, type) for name, type in params})
@@ -22,9 +22,9 @@ class TaskMixin:
     @classmethod
     def get_default(cls, param):
         try:
-            return cls.__dataclass_fields__[param].default
+            return cls.__dataclass_fields__[param].default  # type: ignore
         except AttributeError:
-            field = cls.__fields__[param]
+            field = cls.__fields__[param]  # type: ignore
             return (
                 field.default_factory()
                 if field.default_factory
