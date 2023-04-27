@@ -1,39 +1,73 @@
-from datetime import datetime
-import inspect
 import os
-import typing
+from datetime import datetime
+from typing import (
+    Any,
+    ClassVar,
+    Dict,
+    List,
+    Type,
+    Union,
+)
 
 
 class TaskMixin:
+    __dataclass_fields__: ClassVar[Dict[str, Any]]
+    __fields__: ClassVar[Dict[str, Any]]
+
+    @classmethod
+    def __call__(cls: Type["TaskMixin"]) -> "TaskMixin":
+        return cls.create()
+
     @classmethod
     def create(cls):
         params = []
-        try:
-            fields = cls.__dataclass_fields__.values()  # type: ignore
+        if hasattr(cls, "__dataclass_fields__"):
+            fields = cls.__dataclass_fields__.values()
             for field in fields:
                 params.append((field.name, field.type))
-        except AttributeError:
-            fields = cls.__fields__.values()  # type: ignore
+        elif hasattr(cls, "__fields__"):
+            fields = cls.__fields__.values()
             for field in fields:
-                params.append((field.name, field.type_))
+                print("in create")
+                print(f"type of field: {type(field)}")
+                # print(f"dir of field: {dir(field)}")
+                print(f"AAAAA: {field.outer_type_}")
+                params.append((field.name, field.outer_type_))
         task = cls(**{name: cls.parse(name, type) for name, type in params})
         return task
 
     @classmethod
-    def get_default(cls, param):
-        try:
-            return cls.__dataclass_fields__[param].default  # type: ignore
-        except AttributeError:
-            field = cls.__fields__[param]  # type: ignore
-            return (
-                field.default_factory()
-                if field.default_factory
-                else field.default
-            )
+    def get_default(
+        cls, name_
+    ) -> Union[
+        datetime,
+        bool,
+        int,
+        float,
+        str,
+        List[bool],
+        List[int],
+        List[float],
+        List[str],
+    ]:
+        if default := os.getenv(name_):
+            return default
+        if hasattr(cls, "__dataclass_fields__"):
+            print("in dataclass get_default")
+            return cls.__dataclass_fields__[name_].default
+        elif hasattr(cls, "__fields__"):
+            print("in pydantic get_default")
+            field = cls.__fields__[name_]
+            print(f"field: {field}")
+            value = field.get_default()
+            print(value)
+            return value
+        else:
+            raise TypeError("Invalid type")
 
     @classmethod
     def get_date(cls, param):
-        n = param.split("-")
+        n = [int(n) for n in param.split("-")]
         if len(n) == 3:
             return datetime(n[0], n[1], n[2])
         elif len(n) == 6:
@@ -42,48 +76,52 @@ class TaskMixin:
             raise TypeError("Invalid datetime format")
 
     @classmethod
-    def parse(cls, param_name, param_type):
-        param = os.getenv(param_name, cls.get_default(param_name))
-        print(param, param_type, param_name)
-        if inspect.isclass(param_type):
-            print("isclass")
-            if issubclass(param_type, datetime):
-                if isinstance(param, datetime):
-                    return param
-                elif isinstance(param, str):
-                    has_t_or_colon = ":" in param or "T" in param
-                    num_parts = len(param.split("-"))
-                    if has_t_or_colon:
-                        param = param.replace(" ", "-")
-                        param = param.replace("T", "-")
-                        param = param.replace(":", "-")
-                        return cls.get_date(param)
-                    elif num_parts == 3:
-                        return cls.get_date(param)
-                    else:
-                        raise TypeError("Invalid datetime format")
+    def parse(cls, name_, type_):
+        value = cls.get_default(name_)
+        print(f"parsing '{name_}' with type {type_} and value {value}")
+        if isinstance(value, str):
+            print("is str")
+            if type_ == List[int]:
+                return tuple(map(int, value.split(",")))
+            elif type_ == List[str]:
+                return tuple(map(str, value.split(",")))
+            elif type_ == List[float]:
+                return tuple(map(float, value.split(",")))
+            elif type_ == List[bool]:
+                return tuple(map(parse_bool, value.split(",")))
+            elif type_ == bool:
+                return parse_bool(value)
+            elif type_ == int:
+                return int(value)
+            elif type_ == float:
+                return float(value)
+            elif type_ == str:
+                return str(value)
+            elif type_ == datetime:
+                has_t_or_colon = ":" in value or "T" in value
+                num_parts = len(value.split("-"))
+                if has_t_or_colon:
+                    value = value.replace(" ", "-")
+                    value = value.replace("T", "-")
+                    value = value.replace(":", "-")
+                    return cls.get_date(value)
+                elif num_parts == 3:
+                    return cls.get_date(value)
                 else:
-                    raise TypeError("Invalid default value")
-            elif issubclass(param_type, bool):
-                return parse_bool(param)
-            elif issubclass(param_type, int):
-                return int(param)
-            elif issubclass(param_type, float):
-                return float(param)
-            elif issubclass(param_type, str):
-                return str(param)
+                    raise TypeError("Invalid datetime format")
+        elif isinstance(value, list):
+            print("is list")
+            if type_ in [List[int], List[str], List[float], List[bool]]:
+                return value
+        elif type_ == datetime:
+            if isinstance(value, datetime):
+                return value
             else:
-                raise TypeError("Invalid type")
+                raise TypeError("Invalid default value")
+        elif type_ in [bool, int, float]:
+            return value
         else:
-            print("not isclass")
-            if param_type == typing.Tuple[int]:
-                return tuple(map(int, param.split(",")))
-            elif param_type == typing.Tuple[str]:
-                return tuple(map(str, param.split(",")))
-            elif param_type == typing.Tuple[float]:
-                return tuple(map(float, param.split(",")))
-            elif param_type == typing.Tuple[bool]:
-                return tuple(map(parse_bool, param.split(",")))
+            raise TypeError("Invalid type")
 
 
 def parse_bool(param):

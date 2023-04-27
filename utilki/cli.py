@@ -48,7 +48,7 @@ def venv(python_version):
                     stderr=subprocess.PIPE,
                     text=True,
                 )
-                for line in iter(process.stdout.readline, ""):
+                for line in iter(process.stdout.readline, ""):  # type: ignore
                     click.echo(line.strip())
                 return_code = process.wait()
                 if return_code != 0:

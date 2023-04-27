@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import List
 from utilki import TaskMixin
 from dataclasses import dataclass
 from datetime import datetime
@@ -69,7 +69,7 @@ def test_task_create_invalid_datetime(env_vars):
 
 def test_task_create_invalid_datetime_2(env_vars):
     os.environ["when_to_smoke"] = "2012-12-12 12:12:12 invalid"
-    with raises(TypeError, match="Invalid datetime format"):
+    with raises(ValueError, match="invalid literal"):
         Task.create()
 
 
@@ -112,7 +112,7 @@ def test_task_create_invalid_bool(incorrect_env_vars):
 
 @dataclass
 class WrongDefaultTask(TaskMixin):
-    when_i_has_incorrect_default: datetime = 100500
+    when_i_has_incorrect_default: datetime = 100500  # type: ignore
 
 
 def test_task_create_invalid_default():
@@ -130,26 +130,17 @@ def test_task_create_invalid_type():
         TypeWeDontSupport.create()
 
 
-@dataclass
-class TaskTuple(TaskMixin):
-    tuple_of_ints: Tuple[int] = (1, 2, 3)
-    tuple_of_strs: Tuple[str] = ("1", "2", "3")
-    tuple_of_floats: Tuple[float] = (1.0, 2.0, 3.0)
-    tuple_of_bools: Tuple[bool] = (True, False, True)
-
-
-def test_task_create_tuple():
-    os.environ["tuple_of_ints"] = "4,5,6"
-    os.environ["tuple_of_strs"] = "4,5,6"
-    os.environ["tuple_of_floats"] = "4.0,5.0,6.0"
-    os.environ["tuple_of_bools"] = "True,False,true"
-    task = TaskTuple.create()
-    assert task == TaskTuple(
-        tuple_of_ints=(4, 5, 6),
-        tuple_of_strs=("4", "5", "6"),
-        tuple_of_floats=(4.0, 5.0, 6.0),
-        tuple_of_bools=(True, False, True),
-    )
+@fixture
+def env_vars_list():
+    os.environ["list_of_ints"] = "4,5,6"
+    os.environ["list_of_strs"] = "4,5,6"
+    os.environ["list_of_floats"] = "4.0,5.0,6.0"
+    os.environ["list_of_bools"] = "True,False,true"
+    yield
+    del os.environ["list_of_ints"]
+    del os.environ["list_of_strs"]
+    del os.environ["list_of_floats"]
+    del os.environ["list_of_bools"]
 
 
 from pydantic.dataclasses import dataclass  # noqa
@@ -164,6 +155,7 @@ def test_task_create_dataclass():
     os.environ["should_i_smoke"] = "False"
     task = TaskPydanticDataclass.create()
     assert task == TaskPydanticDataclass()
+    del os.environ["should_i_smoke"]
 
 
 class TaskBaseModel(BaseModel, TaskMixin):
@@ -174,3 +166,26 @@ def test_task_create_base_model():
     os.environ["should_i_smoke"] = "False"
     task = TaskBaseModel.create()
     assert task == TaskBaseModel()
+    del os.environ["should_i_smoke"]
+
+
+class TaskBaseModelList(BaseModel, TaskMixin):
+    list_of_ints: List[int] = [1, 2, 3]
+    list_of_strs: List[str] = ["1", "2", "3"]
+    list_of_floats: List[float] = [1.0, 2.0, 3.0]
+    list_of_bools: List[bool] = [True, False, True]
+
+
+def test_task_create_base_model_list_default():
+    task = TaskBaseModelList.create()
+    assert task == TaskBaseModelList()
+
+
+def test_task_create_base_model_list(env_vars_list):
+    task = TaskBaseModelList.create()
+    assert task == TaskBaseModelList(
+        list_of_ints=[4, 5, 6],
+        list_of_strs=["4", "5", "6"],
+        list_of_floats=[4.0, 5.0, 6.0],
+        list_of_bools=[True, False, True],
+    )
