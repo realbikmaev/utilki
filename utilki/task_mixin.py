@@ -14,16 +14,25 @@ from typing import (
 )
 
 
+Defaults = Union[
+    datetime,
+    bool,
+    int,
+    float,
+    str,
+    List[bool],
+    List[int],
+    List[float],
+    List[str],
+]
+
+
 class TaskMixin:
     __dataclass_fields__: ClassVar[Dict[str, Any]]
     __fields__: ClassVar[Dict[str, Any]]
 
     @classmethod
-    def __call__(cls: Type["TaskMixin"]) -> "TaskMixin":
-        return cls.create()
-
-    @classmethod
-    def create(cls: Type["TaskMixin"]) -> "TaskMixin":
+    def create(cls):
         params: List[Tuple[str, Any]] = []
         if hasattr(cls, "__dataclass_fields__"):
             fields: Iterable[Field] = cls.__dataclass_fields__.values()
@@ -37,25 +46,16 @@ class TaskMixin:
         return task
 
     @classmethod
-    def get_default(
-        cls, name_
-    ) -> Union[
-        datetime,
-        bool,
-        int,
-        float,
-        str,
-        List[bool],
-        List[int],
-        List[float],
-        List[str],
-    ]:
+    def get_default(cls, name_) -> Defaults:
         if default := os.getenv(name_):
             return default
         if hasattr(cls, "__dataclass_fields__"):
-            return cls.__dataclass_fields__[name_].default
+            field: Field = cls.__dataclass_fields__[name_]
+            result: Any = field.default
+            return result
         elif hasattr(cls, "__fields__"):
-            return cls.__fields__[name_].get_default()
+            model_field: ModelField = cls.__fields__[name_]
+            return model_field.get_default()
         else:
             raise TypeError("Invalid type")
 

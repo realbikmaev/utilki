@@ -189,3 +189,14 @@ def test_task_create_base_model_list(env_vars_list):
         list_of_floats=[4.0, 5.0, 6.0],
         list_of_bools=[True, False, True],
     )
+
+
+def use_task(task: Task):
+    assert task == Task()
+    return task
+
+
+def test_eq_type_checks():
+    task = Task.create()
+    use_result = use_task(task)
+    print(use_result)
