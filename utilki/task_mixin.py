@@ -1,10 +1,14 @@
 import os
 from datetime import datetime
+from dataclasses import Field
+from pydantic.fields import ModelField
 from typing import (
     Any,
     ClassVar,
     Dict,
+    Iterable,
     List,
+    Tuple,
     Type,
     Union,
 )
@@ -19,16 +23,16 @@ class TaskMixin:
         return cls.create()
 
     @classmethod
-    def create(cls):
-        params = []
+    def create(cls: Type["TaskMixin"]) -> "TaskMixin":
+        params: List[Tuple[str, Any]] = []
         if hasattr(cls, "__dataclass_fields__"):
-            fields = cls.__dataclass_fields__.values()
+            fields: Iterable[Field] = cls.__dataclass_fields__.values()
             for field in fields:
                 params.append((field.name, field.type))
-        elif hasattr(cls, "__fields__"):
-            fields = cls.__fields__.values()
-            for field in fields:
-                params.append((field.name, field.outer_type_))
+        if hasattr(cls, "__fields__"):
+            model_fields: Iterable[ModelField] = cls.__fields__.values()
+            for model_field in model_fields:
+                params.append((model_field.name, model_field.outer_type_))
         task = cls(**{name: cls.parse(name, type) for name, type in params})
         return task
 
