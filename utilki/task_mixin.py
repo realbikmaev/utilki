@@ -70,18 +70,26 @@ class TaskMixin:
             raise TypeError("Invalid datetime format")
 
     @classmethod
+    def parse_list(cls, list_str, type_):
+        if list_str.startswith("["):
+            list_str = list_str[1:]
+        if list_str.endswith("]"):
+            list_str = list_str[:-1]
+        return tuple(map(type_, list_str.split(",")))
+
+    @classmethod
     def parse(cls, name_, type_):
         value = cls.get_default(name_)
-        # print(f"parsing '{name_}' with type {type_} and value {value}")
+        print(f"parsing '{name_}' with type {type_} and value {value}")
         if isinstance(value, str):
             if type_ == List[int]:
-                return tuple(map(int, value.split(",")))
+                return cls.parse_list(value, int)
             elif type_ == List[str]:
-                return tuple(map(str, value.split(",")))
+                return cls.parse_list(value, str)
             elif type_ == List[float]:
-                return tuple(map(float, value.split(",")))
+                return cls.parse_list(value, float)
             elif type_ == List[bool]:
-                return tuple(map(parse_bool, value.split(",")))
+                return cls.parse_list(value, parse_bool)
             elif type_ == bool:
                 return parse_bool(value)
             elif type_ == int:
