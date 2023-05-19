@@ -32,6 +32,10 @@ class TaskMixin:
     __fields__: ClassVar[Dict[str, Any]]
 
     @classmethod
+    def __init__(cls, **kwargs):
+        ...
+
+    @classmethod
     def create(cls):
         params: List[Tuple[str, Any]] = []
         if hasattr(cls, "__dataclass_fields__"):
@@ -80,7 +84,7 @@ class TaskMixin:
     @classmethod
     def parse(cls, name_, type_):
         value = cls.get_default(name_)
-        print(f"parsing '{name_}' with type {type_} and value {value}")
+        # print(f"parsing '{name_}' with type {type_} and value {value}")
         if isinstance(value, str):
             if type_ == List[int]:
                 return cls.parse_list(value, int)
