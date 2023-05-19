@@ -45,14 +45,15 @@ class TaskMixin:
         if hasattr(cls, "__fields__"):
             model_fields: Iterable[ModelField] = cls.__fields__.values()
             for model_field in model_fields:
-                params.append((model_field.name, model_field.outer_type_))
+                params.append((model_field.name, model_field.annotation))
         task = cls(**{name: cls.parse(name, type) for name, type in params})
         return task
 
     @classmethod
     def get_default(cls, name_) -> Defaults:
-        if default := os.getenv(name_):
-            return default
+        env_var = os.getenv(name_)
+        if env_var is not None:
+            return env_var
         if hasattr(cls, "__dataclass_fields__"):
             field: Field = cls.__dataclass_fields__[name_]
             result: Any = field.default
@@ -82,6 +83,13 @@ class TaskMixin:
         return tuple(map(type_, list_str.split(",")))
 
     @classmethod
+    def parse_options(cls, value, type_):
+        if value in ["None", "none", None, "null", "NULL", ""]:
+            return None
+        else:
+            return type_(value)
+
+    @classmethod
     def parse(cls, name_, type_):
         value = cls.get_default(name_)
         # print(f"parsing '{name_}' with type {type_} and value {value}")
@@ -94,6 +102,14 @@ class TaskMixin:
                 return cls.parse_list(value, float)
             elif type_ == List[bool]:
                 return cls.parse_list(value, parse_bool)
+            elif type_ == Union[int, None]:
+                return cls.parse_options(value, int)
+            elif type_ == Union[str, None]:
+                return cls.parse_options(value, str)
+            elif type_ == Union[float, None]:
+                return cls.parse_options(value, float)
+            elif type_ == Union[bool, None]:
+                return cls.parse_options(value, parse_bool)
             elif type_ == bool:
                 return parse_bool(value)
             elif type_ == int:
@@ -125,6 +141,7 @@ class TaskMixin:
         elif type_ in [bool, int, float]:
             return value
         else:
+            print(f"parsing '{name_}' with type {type_} and value {value}")
             raise TypeError("Invalid type")
 
 

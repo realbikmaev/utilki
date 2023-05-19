@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from utilki import TaskMixin
 from dataclasses import dataclass
 from datetime import datetime
@@ -223,3 +223,44 @@ def test_eq_type_checks():
     task = Task.create()
     use_result = use_task(task)
     print(use_result)
+
+
+class OptionalIntTask(BaseModel, TaskMixin):
+    how_many_times: Optional[int] = None
+
+
+@fixture
+def optional_int_env_vars():
+    os.environ["how_many_times"] = "None"
+    yield
+    del os.environ["how_many_times"]
+
+
+def test_optional_int(optional_int_env_vars):
+    task = OptionalIntTask.create()
+    assert task == OptionalIntTask(how_many_times=None)
+
+
+class OptionalTask(BaseModel, TaskMixin):
+    ints: Optional[int] = 1
+    strs: Optional[str] = "2"
+    floats: Optional[float] = 3.0
+    bools: Optional[bool] = True
+
+
+@fixture
+def optional_env_vars():
+    os.environ["ints"] = "None"
+    os.environ["strs"] = "null"
+    os.environ["floats"] = ""
+    os.environ["bools"] = "NULL"
+    yield
+    del os.environ["ints"]
+    del os.environ["strs"]
+    del os.environ["floats"]
+    del os.environ["bools"]
+
+
+def test_optional(optional_env_vars):
+    task = OptionalTask.create()
+    assert task == OptionalTask(ints=None, strs=None, floats=None, bools=None)
