@@ -245,25 +245,67 @@ def test_optional(optional_env_vars):
 
 
 class JsonEncodedLists(BaseModel, TaskMixin):
-    ints: List[int] = [1, 2, 3]
-    strs: List[str] = ["1", "2", "3"]
-    floats: List[float] = [1.0, 2.0, 3.0]
-    bools: List[bool] = [True, False, True]
+    list_ints: List[int] = [1, 2, 3]
+    list_strs: List[str] = ["1", "2", "3"]
+    list_floats: List[float] = [1.0, 2.0, 3.0]
+    list_bools: List[bool] = [True, False, True]
+    ints: int = 1
+    strs: str = "2"
+    floats: float = 3.0
+    bools: bool = True
+    datetimes: datetime = datetime(2020, 1, 1)
+    optional_int: Optional[int] = None
+    optional_str: Optional[str] = None
+    optional_float: Optional[float] = None
+    optional_bool: Optional[bool] = None
 
 
 @fixture
 def json_encoded_lists_env_vars():
-    os.environ["ints"] = json.dumps([4, 5, 6])
-    os.environ["strs"] = json.dumps(["4", "5", "6"])
-    os.environ["floats"] = json.dumps([4.0, 5.0, 6.0])
-    os.environ["bools"] = json.dumps([False, True, False])
+    os.environ["list_ints"] = json.dumps([4, 5, 6])
+    os.environ["list_strs"] = json.dumps(["4", "5", "6"])
+    os.environ["list_floats"] = json.dumps([4.0, 5.0, 6.0])
+    os.environ["list_bools"] = json.dumps([False, True, False])
+    os.environ["ints"] = json.dumps(4)
+    os.environ["strs"] = json.dumps("4")
+    os.environ["floats"] = json.dumps(4.0)
+    os.environ["bools"] = json.dumps(False)
+    os.environ["datetimes"] = json.dumps("2023-05-20")
+    os.environ["optional_int"] = json.dumps(None)
+    os.environ["optional_str"] = json.dumps(None)
+    os.environ["optional_float"] = json.dumps(None)
+    os.environ["optional_bool"] = json.dumps(None)
+    yield
+    del os.environ["list_ints"]
+    del os.environ["list_strs"]
+    del os.environ["list_floats"]
+    del os.environ["list_bools"]
+    del os.environ["ints"]
+    del os.environ["strs"]
+    del os.environ["floats"]
+    del os.environ["bools"]
+    del os.environ["datetimes"]
+    del os.environ["optional_int"]
+    del os.environ["optional_str"]
+    del os.environ["optional_float"]
+    del os.environ["optional_bool"]
 
 
 def test_json_encoded_lists(json_encoded_lists_env_vars):
     task = JsonEncodedLists.create()
     assert task == JsonEncodedLists(
-        ints=[4, 5, 6],
-        strs=["4", "5", "6"],
-        floats=[4.0, 5.0, 6.0],
-        bools=[False, True, False],
+        list_ints=[4, 5, 6],
+        list_strs=["4", "5", "6"],
+        list_floats=[4.0, 5.0, 6.0],
+        list_bools=[False, True, False],
+        ints=4,
+        strs="4",
+        floats=4.0,
+        bools=False,
+        datetimes=datetime(2023, 5, 20),
+        optional_int=None,
+        optional_str=None,
+        optional_float=None,
+        optional_bool=None,
     )
+    

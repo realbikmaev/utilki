@@ -124,8 +124,18 @@ class TaskMixin:
             elif type_ == float:
                 return float(value)
             elif type_ == str:
-                return str(value)
+                try:
+                    res = json.loads(value)
+                    if type(res) == int:
+                        return str(res)
+                    else:
+                        return res
+                except Exception:
+                    return str(value)
             elif type_ == datetime:
+                # FIXME actually like use proper parsing lmao
+                if value.startswith('"') and value.endswith('"'):
+                    value = value[1:-1]
                 has_t_or_colon = ":" in value or "T" in value
                 num_parts = len(value.split("-"))
                 if has_t_or_colon:
