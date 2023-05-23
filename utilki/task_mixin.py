@@ -1,3 +1,4 @@
+from abc import abstractmethod
 import json
 import os
 from datetime import datetime
@@ -43,23 +44,29 @@ class TaskMixin:
             fields: Iterable[Field] = cls.__dataclass_fields__.values()
             for field in fields:
                 params.append((field.name, field.type))
-        if hasattr(cls, "__fields__"):
+        elif hasattr(cls, "__fields__"):
             model_fields: Iterable[ModelField] = cls.__fields__.values()
             for model_field in model_fields:
                 params.append((model_field.name, model_field.annotation))
+        else:
+            raise TypeError("Invalid type")
         task = cls(**{name: cls.parse(name, type) for name, type in params})
         return task
 
     @classmethod
     def get_default(cls, name_) -> Defaults:
+        print(f"get_default({name_})")
         env_var = os.getenv(name_)
         if env_var is not None:
+            print(f"env_var: {env_var}")
             return env_var
         if hasattr(cls, "__dataclass_fields__"):
+            print(f"cls.__dataclass_fields__: {cls.__dataclass_fields__}")
             field: Field = cls.__dataclass_fields__[name_]
             result: Any = field.default
             return result
         elif hasattr(cls, "__fields__"):
+            print(f"cls.__fields__: {cls.__fields__}")
             model_field: ModelField = cls.__fields__[name_]
             return model_field.get_default()
         else:
@@ -73,7 +80,7 @@ class TaskMixin:
         elif len(n) == 6:
             return datetime(n[0], n[1], n[2], n[3], n[4], n[5])
         else:
-            raise TypeError("Invalid datetime format")
+            raise ValueError("Invalid datetime format")
 
     @classmethod
     def parse_list(cls, list_str: str, type_) -> List[Any]:
@@ -87,7 +94,7 @@ class TaskMixin:
         elif "," in list_str:
             return list(map(type_, list_str.split(",")))
         else:
-            raise TypeError("Invalid list format")
+            raise ValueError("Invalid list format")
 
     @classmethod
     def parse_options(cls, value, type_):

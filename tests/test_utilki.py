@@ -80,6 +80,22 @@ def test_valid_datetime(env_vars, parsed_task):
     assert task == parsed_task
 
 
+def test_invalid_datetime(env_vars):
+    with raises(ValueError, match="Invalid datetime format"):
+        Task.get_date("2022-02")
+
+
+def test_parse_str_exception(env_vars):
+    os.environ["lmao"] = "a: 1"
+    task = Task.create()
+    assert task.lmao == "a: 1"
+
+
+def test_init_ellipsis(env_vars):
+    mixin = TaskMixin.__init__()
+    assert mixin is None
+
+
 def test_valid_datetime_2(env_vars, parsed_task):
     os.environ["when_to_smoke"] = "2012-12-12"
     task = Task.create()
@@ -182,6 +198,11 @@ def test_task_create_base_model_list_default():
     assert task == TaskBaseModelList()
 
 
+def test_invalid_list_format():
+    with raises(ValueError, match="Invalid list format"):
+        TaskBaseModelList.parse_list("1;2;3", int)
+
+
 def test_task_create_base_model_list(env_vars_list):
     task = TaskBaseModelList.create()
     assert task == TaskBaseModelList(
@@ -217,6 +238,10 @@ def optional_int_env_vars():
 def test_optional_int(optional_int_env_vars):
     task = OptionalIntTask.create()
     assert task == OptionalIntTask(how_many_times=None)
+
+
+def test_parse_options():
+    OptionalIntTask.parse_options("1", int)
 
 
 class OptionalTask(BaseModel, TaskMixin):
@@ -308,4 +333,34 @@ def test_json_encoded_lists(json_encoded_lists_env_vars):
         optional_float=None,
         optional_bool=None,
     )
-    
+
+
+class Wrong(TaskMixin):
+    ayy: int = 1
+    lmao: str = "2"
+    when: datetime = datetime(2020, 1, 1)
+
+
+def test_wrong_no_mixing_in():
+    os.unsetenv("ayy")
+    os.unsetenv("lmao")
+
+    with raises(TypeError):
+        Wrong.create()
+
+
+def test_wrong_type_error_get_default():
+    os.unsetenv("ayy")
+    os.unsetenv("lmao")
+
+    with raises(TypeError):
+        Wrong.get_default("ayy")
+
+
+def test_wrong_type_error_get_date():
+    os.unsetenv("ayy")
+    os.unsetenv("lmao")
+    os.environ["when"] = "2022-30-20-20"
+
+    with raises(TypeError):
+        Wrong.get_default("ayy")
