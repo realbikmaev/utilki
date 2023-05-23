@@ -1,3 +1,4 @@
+import json
 from typing import List, Optional
 from utilki import TaskMixin
 from dataclasses import dataclass
@@ -143,19 +144,6 @@ def env_vars_list():
     del os.environ["list_of_bools"]
 
 
-@fixture
-def env_vars_list_str():
-    os.environ["list_of_ints"] = "[4,5,6]"
-    os.environ["list_of_strs"] = "[4,5,6]"
-    os.environ["list_of_floats"] = "[4.0,5.0,6.0]"
-    os.environ["list_of_bools"] = "[True,False,true]"
-    yield
-    del os.environ["list_of_ints"]
-    del os.environ["list_of_strs"]
-    del os.environ["list_of_floats"]
-    del os.environ["list_of_bools"]
-
-
 from pydantic.dataclasses import dataclass  # noqa
 
 
@@ -195,16 +183,6 @@ def test_task_create_base_model_list_default():
 
 
 def test_task_create_base_model_list(env_vars_list):
-    task = TaskBaseModelList.create()
-    assert task == TaskBaseModelList(
-        list_of_ints=[4, 5, 6],
-        list_of_strs=["4", "5", "6"],
-        list_of_floats=[4.0, 5.0, 6.0],
-        list_of_bools=[True, False, True],
-    )
-
-
-def test_task_create_base_model_list_str(env_vars_list_str):
     task = TaskBaseModelList.create()
     assert task == TaskBaseModelList(
         list_of_ints=[4, 5, 6],
@@ -264,3 +242,28 @@ def optional_env_vars():
 def test_optional(optional_env_vars):
     task = OptionalTask.create()
     assert task == OptionalTask(ints=None, strs=None, floats=None, bools=None)
+
+
+class JsonEncodedLists(BaseModel, TaskMixin):
+    ints: List[int] = [1, 2, 3]
+    strs: List[str] = ["1", "2", "3"]
+    floats: List[float] = [1.0, 2.0, 3.0]
+    bools: List[bool] = [True, False, True]
+
+
+@fixture
+def json_encoded_lists_env_vars():
+    os.environ["ints"] = json.dumps([4, 5, 6])
+    os.environ["strs"] = json.dumps(["4", "5", "6"])
+    os.environ["floats"] = json.dumps([4.0, 5.0, 6.0])
+    os.environ["bools"] = json.dumps([False, True, False])
+
+
+def test_json_encoded_lists(json_encoded_lists_env_vars):
+    task = JsonEncodedLists.create()
+    assert task == JsonEncodedLists(
+        ints=[4, 5, 6],
+        strs=["4", "5", "6"],
+        floats=[4.0, 5.0, 6.0],
+        bools=[False, True, False],
+    )

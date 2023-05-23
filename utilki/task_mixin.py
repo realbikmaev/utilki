@@ -1,3 +1,4 @@
+import json
 import os
 from datetime import datetime
 from dataclasses import Field
@@ -75,12 +76,18 @@ class TaskMixin:
             raise TypeError("Invalid datetime format")
 
     @classmethod
-    def parse_list(cls, list_str, type_):
-        if list_str.startswith("["):
-            list_str = list_str[1:]
-        if list_str.endswith("]"):
-            list_str = list_str[:-1]
-        return tuple(map(type_, list_str.split(",")))
+    def parse_list(cls, list_str: str, type_) -> List[Any]:
+        if list_str.startswith("[") and list_str.endswith("]"):
+            return json.loads(list_str)
+        # TODO: make this a separate tuple parsing function
+        # elif list_str.startswith("(") and list_str.endswith(")"):
+        #     list_str.replace("(", "[")
+        #     list_str.replace(")", "]")
+        #     return json.loads(list_str)
+        elif "," in list_str:
+            return list(map(type_, list_str.split(",")))
+        else:
+            raise TypeError("Invalid list format")
 
     @classmethod
     def parse_options(cls, value, type_):
