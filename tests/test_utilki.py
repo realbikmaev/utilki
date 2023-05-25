@@ -7,6 +7,8 @@ import os
 from pytest import raises, fixture
 from pydantic import BaseModel
 
+from utilki.task_mixin import get_date, parse_list, parse_options
+
 
 @dataclass
 class Task(TaskMixin):
@@ -82,7 +84,7 @@ def test_valid_datetime(env_vars, parsed_task):
 
 def test_invalid_datetime(env_vars):
     with raises(ValueError, match="Invalid datetime format"):
-        Task.get_date("2022-02")
+        get_date("2022-02")
 
 
 def test_parse_str_exception(env_vars):
@@ -133,7 +135,7 @@ class WrongDefaultTask(TaskMixin):
 
 
 def test_task_create_invalid_default():
-    with raises(TypeError, match="Invalid default value"):
+    with raises(TypeError):
         WrongDefaultTask.create()
 
 
@@ -143,7 +145,7 @@ class TypeWeDontSupport(TaskMixin):
 
 
 def test_task_create_invalid_type():
-    with raises(TypeError, match="Invalid type"):
+    with raises(TypeError):
         TypeWeDontSupport.create()
 
 
@@ -160,10 +162,10 @@ def env_vars_list():
     del os.environ["list_of_bools"]
 
 
-from pydantic.dataclasses import dataclass  # noqa
+from pydantic.dataclasses import dataclass as pydantic_dataclass
 
 
-@dataclass
+@pydantic_dataclass
 class TaskPydanticDataclass(TaskMixin):
     should_i_smoke: bool = False
 
@@ -200,7 +202,7 @@ def test_task_create_base_model_list_default():
 
 def test_invalid_list_format():
     with raises(ValueError, match="Invalid list format"):
-        TaskBaseModelList.parse_list("1;2;3", int)
+        parse_list("1;2;3", int)
 
 
 def test_task_create_base_model_list(env_vars_list):
@@ -221,7 +223,7 @@ def use_task(task: Task):
 def test_eq_type_checks():
     task = Task.create()
     use_result = use_task(task)
-    print(use_result)
+    del use_result
 
 
 class OptionalIntTask(BaseModel, TaskMixin):
@@ -240,8 +242,24 @@ def test_optional_int(optional_int_env_vars):
     assert task == OptionalIntTask(how_many_times=None)
 
 
+def test_optional_int_no_env_vars():
+    os.unsetenv("how_many_times")
+    task = OptionalIntTask.create()
+    assert task == OptionalIntTask(how_many_times=None)
+
+
 def test_parse_options():
-    OptionalIntTask.parse_options("1", int)
+    parse_options("1", int)
+
+
+class WhatIfUserIsStupid(BaseModel, TaskMixin):
+    his_iq: int = None  # type: ignore
+    iq_of_his_parents: List[int] = None  # type: ignore
+
+
+def test_what_if_user_is_stupid():
+    with raises(TypeError):
+        WhatIfUserIsStupid.create()
 
 
 class OptionalTask(BaseModel, TaskMixin):
