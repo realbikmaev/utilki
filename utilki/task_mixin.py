@@ -37,7 +37,12 @@ options = [
     Union[str, None],
     Union[bool, None],
 ]
-types_we_support = singles + lists + options
+
+dicts = [Dict[str, Any], Dict[str, str], Dict[str, int], Dict[str, float]] + [
+    Dict[str, Dict[str, Any]]
+]
+
+types_we_support = singles + lists + options + dicts
 
 IsDefault = bool
 
@@ -100,7 +105,9 @@ class TaskMixin:
                 raise TypeError("Invalid type")
             if type_ in lists and not isinstance(value, list):
                 raise TypeError("Invalid type")
-            return value
+            else:
+                print("in else")
+                return value
         dbg(f"parsing '{name_}' with type {type_} and value {value}")
         if isinstance(value, str):
             res = parse_variations(type_, value, name_)
@@ -178,6 +185,16 @@ def parse_variations(type_, value, name_):
         return parse_options(value, float)
     elif type_ == Union[bool, None]:
         return parse_options(value, parse_bool)
+    elif type_ == Dict[int, Any]:
+        return json.loads(value)
+    elif type_ == Dict[str, Any]:
+        return json.loads(value)
+    elif type_ == Dict[float, Any]:
+        return json.loads(value)
+    elif type_ == Dict[bool, Any]:
+        return json.loads(value)
+    elif type_ == Dict[str, Dict[str, Any]]:
+        return json.loads(value)
     elif type_ == bool:
         return parse_bool(value)
     elif type_ == int:

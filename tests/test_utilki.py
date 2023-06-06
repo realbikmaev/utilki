@@ -1,5 +1,5 @@
 import json
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from utilki import TaskMixin
 from dataclasses import dataclass
 from datetime import datetime
@@ -382,3 +382,18 @@ def test_wrong_type_error_get_date():
 
     with raises(TypeError):
         Wrong.get_default("ayy")
+
+
+class DictInDict(BaseModel, TaskMixin):
+    ayy: Dict[str, Dict[str, Any]] = {"lmao": {"when": "soon"}}
+
+
+def test_dict_in_dict():
+    task = DictInDict.create()
+    assert task == DictInDict(ayy={"lmao": {"when": "soon"}})
+
+
+def test_dict_in_dict_from_env():
+    os.environ["ayy"] = json.dumps({"lmao": {"when": "not really soon"}})
+    task = DictInDict.create()
+    assert task == DictInDict(ayy={"lmao": {"when": "not really soon"}})
