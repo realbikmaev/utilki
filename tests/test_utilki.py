@@ -2,10 +2,10 @@ import json
 from typing import List, Optional, Dict, Any
 from utilki import TaskMixin
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 from pytest import raises, fixture
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from utilki.task_mixin import get_date, parse_list, parse_options
 
@@ -397,3 +397,24 @@ def test_dict_in_dict_from_env():
     os.environ["ayy"] = json.dumps({"lmao": {"when": "not really soon"}})
     task = DictInDict.create()
     assert task == DictInDict(ayy={"lmao": {"when": "not really soon"}})
+
+
+class FieldFactory(BaseModel, TaskMixin):
+    date_from: str = Field(
+        default_factory=lambda: str(datetime.now().date() - timedelta(days=1))
+    )
+    date_to: str = Field(default_factory=lambda: str(datetime.now().date()))
+
+
+def test_base_model_field_factory():
+    task = FieldFactory.create()
+    assert task.date_from == str(datetime.now().date() - timedelta(days=1))
+    assert task.date_to == str(datetime.now().date())
+
+
+def test_base_model_field_factory_from_env():
+    os.environ["date_from"] = "2020-01-01"
+    os.environ["date_to"] = "2020-01-02"
+    task = FieldFactory.create()
+    assert task.date_from == "2020-01-01"
+    assert task.date_to == "2020-01-02"
