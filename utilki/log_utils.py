@@ -21,11 +21,13 @@ def set_callback(callback: Callable):
 def dbg(message: str):
     global _logger_name
     global _callback
-    if _use_print:
-        print(f"{message}", flush=True)
-    logging.getLogger(_logger_name).debug(message)
-    if _callback:
-        _callback(message)
+    logger = logging.getLogger(_logger_name)
+    if logger.level <= logging.DEBUG:
+        if _use_print:
+            print(f"{message}", flush=True)
+        if _callback:
+            _callback(message)
+    logger.debug(message)
 
 
 def log(message: str):
