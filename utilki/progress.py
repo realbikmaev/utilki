@@ -3,6 +3,11 @@ import logging
 from typing import Optional
 
 
+def set_default_logger_name(name: str):
+    global default_logger_name
+    default_logger_name = name
+
+
 class progress:
     def __init__(
         self,
@@ -17,6 +22,9 @@ class progress:
             raise ValueError("Passed object is not iterable")
         if not isinstance(iterator, Sized):
             raise ValueError("Passed object does not have a size")
+
+        if logger_name is None:
+            logger_name = default_logger_name
 
         self.logger = logging.getLogger(logger_name)
 
@@ -65,9 +73,11 @@ class progress:
 if __name__ == "__main__":
     import time
 
+    set_default_logger_name("progress")
+
     # setup basic logging format
     logging.basicConfig(
-        format="%(asctime)s %(levelname)s %(message)s",
+        format="%(asctime)s %(levelname)s %(name)s %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
         level=logging.INFO,
     )
