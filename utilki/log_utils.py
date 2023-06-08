@@ -1,33 +1,33 @@
-from collections.abc import Iterable, Sized
+from collections.abc import Iterable, Sized, Iterator
 import logging
-from typing import Callable, Optional
+from typing import Callable, Optional, TypeVar, Generic, Iterable
 
 
 def set_default_logger_name(name: str):
     global _logger_name
-    _logger_name = name
+    _logger_name = name  # type: ignore
 
 
 def set_use_print(use_print: bool):
     global _use_print
-    _use_print = use_print
+    _use_print = use_print  # type: ignore
 
 
 def set_callback(callback: Callable):
     global _callback
-    _callback = callback
+    _callback = callback  # type: ignore
 
 
 def dbg(message: str):
     global _logger_name
     global _callback
     global _use_print
-    logger = logging.getLogger(_logger_name)
+    logger = logging.getLogger(_logger_name)  # type: ignore
     if logger.level <= logging.DEBUG:
-        if _use_print:
+        if _use_print:  # type: ignore
             print(f"{message}", flush=True)
-        if _callback:
-            _callback(message)
+        if _callback:  # type: ignore
+            _callback(message)  # type: ignore
     logger.debug(message)
 
 
@@ -35,17 +35,20 @@ def log(message: str):
     global _logger_name
     global _callback
     global _use_print
-    if _use_print:
+    if _use_print:  # type: ignore
         print(f"{message}", flush=True)
-    logging.getLogger(_logger_name).info(message)
-    if _callback:
-        _callback(message)
+    logging.getLogger(_logger_name).info(message)  # type: ignore
+    if _callback:  # type: ignore
+        _callback(message)  # type: ignore
 
 
-class progress:
+A = TypeVar("A")
+
+
+class progress(Generic[A]):
     def __init__(
         self,
-        iterator: Iterable,
+        iterator: Iterable[A],
         name: str = "",
         num_steps: int = 10,
         precision: int = 1,
@@ -59,12 +62,12 @@ class progress:
 
         if logger_name is None:
             global _logger_name
-            logger_name = _logger_name
+            logger_name = _logger_name  # type: ignore
 
         self.logger = logging.getLogger(logger_name)
 
         self.print_idx = print_idx
-        self.iterator = iter(iterator)
+        self.iterator: Iterator[A] = iter(iterator)
         self.len = len(iterator)
         self.name = name
         self.num_steps = num_steps
@@ -92,7 +95,7 @@ class progress:
     def __iter__(self):
         return self
 
-    def __next__(self):
+    def __next__(self) -> A:
         if self.index in self.indices:
             msg = f"{self.name} {self.map[self.index]:>{self.percent_len}}"
             if self.print_idx:
@@ -132,6 +135,10 @@ if __name__ == "__main__":
         time.sleep(0.001)
 
     for idx, i in enumerate(progress(["a", "b", "c"], name="test3")):
+        time.sleep(0.001)
+
+    for i in progress([0.1, 0.2, 0.3], name="test4"):
+        print(i)
         time.sleep(0.001)
 
     def rev(msg):
