@@ -1,6 +1,6 @@
-from collections.abc import Iterable, Sized, Iterator
+from collections.abc import Sized, Iterator
 import logging
-from typing import Callable, Optional, TypeVar, Generic
+from typing import Callable, Optional, TypeVar, Generic, Iterable
 
 
 _logger_name = ""
