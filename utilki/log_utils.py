@@ -18,6 +18,16 @@ def set_callback(callback: Callable):
     _callback = callback
 
 
+def dbg(message: str):
+    global _logger_name
+    global _callback
+    if _use_print:
+        print(f"{message}", flush=True)
+    logging.getLogger(_logger_name).debug(message)
+    if _callback:
+        _callback(message)
+
+
 def log(message: str):
     global _logger_name
     global _callback
