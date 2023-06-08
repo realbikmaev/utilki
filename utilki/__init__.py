@@ -3,3 +3,4 @@
 __version__ = "0.1.0"
 
 from .task_mixin import TaskMixin
+from .progress import progress
