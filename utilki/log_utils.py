@@ -1,33 +1,61 @@
 from collections.abc import Sized, Iterator
 import logging
-from typing import Callable, Optional, TypeVar, Generic, Iterable
+from typing import Any, Callable, Optional, TypeVar, Generic, Iterable
 
 
-_logger_name = ""
-_use_print = False
-_callback = None
+def set_global(name: str, value: Any):
+    globals()[name] = value
 
 
-def set_default_logger_name(name: str):
-    global _logger_name
-    _logger_name = name  # type: ignore
+def get_global(name: str, default=None) -> Optional[Any]:
+    try:
+        return globals()[name]
+    except KeyError:
+        return None if default is None else default
+
+
+def set_logger_name(name: str):
+    globals()["_logger_name"] = name  # type: ignore
+
+
+def _get_logger_name() -> Optional[str]:
+    try:
+        logger_name = globals()["_logger_name"]
+    except KeyError:
+        logger_name = None
+    return logger_name
 
 
 def set_use_print(use_print: bool):
-    global _use_print
-    _use_print = use_print  # type: ignore
+    globals()["_use_print"] = use_print  # type: ignore
+
+
+def _get_use_print() -> bool:
+    try:
+        use_print = globals()["_use_print"]
+    except KeyError:
+        use_print = False
+    return use_print
 
 
 def set_callback(callback: Callable):
-    global _callback
-    _callback = callback  # type: ignore
+    globals()["_callback"] = callback  # type: ignore
+
+
+def _get_callback() -> Optional[Callable]:
+    try:
+        callback = globals()["_callback"]
+    except KeyError:
+        callback = None
+    return callback
 
 
 def dbg(message: str):
-    global _logger_name
-    global _callback
-    global _use_print
-    logger = logging.getLogger(_logger_name)  # type: ignore
+    _logger_name = _get_logger_name()
+    _use_print = _get_use_print()
+    _callback = _get_callback()
+
+    logger = logging.getLogger(_logger_name)
     if logger.level <= logging.DEBUG:
         if _use_print:  # type: ignore
             print(f"{message}", flush=True)
@@ -37,9 +65,10 @@ def dbg(message: str):
 
 
 def log(message: str):
-    global _logger_name
-    global _callback
-    global _use_print
+    _logger_name = _get_logger_name()
+    _use_print = _get_use_print()
+    _callback = _get_callback()
+
     if _use_print:  # type: ignore
         print(f"{message}", flush=True)
     logging.getLogger(_logger_name).info(message)  # type: ignore
@@ -66,8 +95,7 @@ class progress(Generic[A]):
             raise ValueError("Passed object does not have a size")
 
         if logger_name is None:
-            global _logger_name
-            logger_name = _logger_name  # type: ignore
+            logger_name = _get_logger_name()
 
         self.logger = logging.getLogger(logger_name)
 
@@ -116,7 +144,7 @@ class progress(Generic[A]):
 if __name__ == "__main__":
     import time
 
-    set_default_logger_name("progress")
+    set_logger_name("progress")
 
     # setup basic logging format
     logging.basicConfig(
@@ -151,9 +179,14 @@ if __name__ == "__main__":
         pass
 
     set_use_print(True)
-    set_default_logger_name("ayy")
+    set_logger_name("ayy")
     set_callback(rev)
     log("hello world")
 
     logging.getLogger("ayy").setLevel(logging.INFO)
     dbg("debug message")
+
+    set_global("ayy", "lmao")
+
+    value = get_global("ayy")
+    print(value)
