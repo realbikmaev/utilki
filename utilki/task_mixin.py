@@ -1,4 +1,3 @@
-from abc import abstractmethod
 import json
 import os
 from datetime import datetime
@@ -11,7 +10,6 @@ from typing import (
     Iterable,
     List,
     Tuple,
-    Type,
     Union,
 )
 
@@ -47,11 +45,6 @@ types_we_support = singles + lists + options + dicts
 IsDefault = bool
 
 
-def dbg(msg):
-    if False:
-        print(msg)
-
-
 class TaskMixin:
     __dataclass_fields__: ClassVar[Dict[str, Any]]
     __fields__: ClassVar[Dict[str, Any]]
@@ -80,17 +73,14 @@ class TaskMixin:
     def get_default(cls, name_) -> Tuple[IsDefault, Defaults]:
         env_var = os.getenv(name_)
         if env_var is not None:
-            dbg(f"{name_} from env: {env_var}")
             return False, env_var
         if hasattr(cls, "__dataclass_fields__"):
             field: Field = cls.__dataclass_fields__[name_]
             result: Any = field.default
-            dbg(f"{name_} default: {result}")
             return True, result
         elif hasattr(cls, "__fields__"):
             model_field: ModelField = cls.__fields__[name_]
             default_model = model_field.get_default()
-            dbg(f"{name_} default: {default_model}")
             return True, default_model
         else:
             raise TypeError("Invalid type")
@@ -106,12 +96,9 @@ class TaskMixin:
             if type_ in lists and not isinstance(value, list):
                 raise TypeError("Invalid type")
             else:
-                print("in else")
                 return value
-        dbg(f"parsing '{name_}' with type {type_} and value {value}")
         if isinstance(value, str):
             res = parse_variations(type_, value, name_)
-            dbg(f"res: {res}, type: {type_}, actual type {type(res)}")
             return res
         elif isinstance(value, list):
             if type_ in [List[int], List[str], List[float], List[bool]]:
@@ -123,7 +110,6 @@ class TaskMixin:
             if isinstance(value, type_):
                 return value
         else:
-            dbg(f"{name_}: {type_}\n'value' {value}: {type(value)}")
             raise TypeError("Invalid type")
 
 
@@ -168,7 +154,6 @@ def get_date(param: str):
 
 
 def parse_variations(type_, value, name_):
-    dbg(f"{name_} parse_variations({type_}, {value})")
     if type_ == List[int]:
         return parse_list(value, int)
     elif type_ == List[str]:
@@ -202,16 +187,13 @@ def parse_variations(type_, value, name_):
     elif type_ == float:
         return float(value)
     elif type_ == str:
-        dbg(f"str: {value}")
         try:
             res = json.loads(value)
             if type(res) == int:
-                dbg(f"json.loads({value})")
                 return str(res)
             else:
                 return res
         except Exception:
-            dbg(f"exception: {value}")
             return str(value)
     elif type_ == datetime:
         # FIXME actually like use proper parsing lmao
