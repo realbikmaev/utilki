@@ -139,5 +139,7 @@ if __name__ == "__main__":
     set_use_print(True)
     set_default_logger_name("ayy")
     set_callback(rev)
-    # log("\n\n")
     log("hello world")
+
+    logging.getLogger("ayy").setLevel(logging.INFO)
+    dbg("debug message")
