@@ -33,7 +33,8 @@ jobs:
           poetry run coverage xml
 
       - name: Upload package to PyPI if commit is tagged with a version
-        run: poetry config pypi-token.pypi ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          poetry config pypi-token.pypi ${{ secrets.PYPI_API_TOKEN }}
           poetry publish --build -n
 
       - name: Upload coverage to Codecov
