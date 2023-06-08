@@ -1,11 +1,31 @@
 from collections.abc import Iterable, Sized
 import logging
-from typing import Optional
+from typing import Callable, Optional
 
 
 def set_default_logger_name(name: str):
-    global default_logger_name
-    default_logger_name = name
+    global _logger_name
+    _logger_name = name
+
+
+def set_use_print(use_print: bool):
+    global _use_print
+    _use_print = use_print
+
+
+def set_callback(callback: Callable):
+    global _callback
+    _callback = callback
+
+
+def log(message: str):
+    global _logger_name
+    global _callback
+    if _use_print:
+        print(f"{message}", flush=True)
+    logging.getLogger(_logger_name).info(message)
+    if _callback:
+        _callback(message)
 
 
 class progress:
@@ -24,7 +44,8 @@ class progress:
             raise ValueError("Passed object does not have a size")
 
         if logger_name is None:
-            logger_name = default_logger_name
+            global _logger_name
+            logger_name = _logger_name
 
         self.logger = logging.getLogger(logger_name)
 
@@ -98,3 +119,13 @@ if __name__ == "__main__":
 
     for idx, i in enumerate(progress(["a", "b", "c"], name="test3")):
         time.sleep(0.001)
+
+    def rev(msg):
+        print(msg[::-1])
+        pass
+
+    set_use_print(True)
+    set_default_logger_name("ayy")
+    set_callback(rev)
+    # log("\n\n")
+    log("hello world")
