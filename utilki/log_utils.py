@@ -21,6 +21,7 @@ def set_callback(callback: Callable):
 def dbg(message: str):
     global _logger_name
     global _callback
+    global _use_print
     logger = logging.getLogger(_logger_name)
     if logger.level <= logging.DEBUG:
         if _use_print:
@@ -33,6 +34,7 @@ def dbg(message: str):
 def log(message: str):
     global _logger_name
     global _callback
+    global _use_print
     if _use_print:
         print(f"{message}", flush=True)
     logging.getLogger(_logger_name).info(message)
