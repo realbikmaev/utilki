@@ -47,9 +47,9 @@ class progress:
         self,
         iterator: Iterable,
         name: str = "",
-        print_idx: bool = False,
         num_steps: int = 10,
         precision: int = 1,
+        print_idx: bool = False,
         logger_name: Optional[str] = None,
     ):
         if not isinstance(iterator, Iterable):
