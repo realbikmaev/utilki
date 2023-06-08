@@ -10,6 +10,10 @@ from .log_utils import (
     set_callback,
     log,
     dbg,
+    info,
+    err,
+    warn,
+    basic_config,
     set_global,
     get_global,
 )
