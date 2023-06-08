@@ -1,6 +1,11 @@
 from collections.abc import Iterable, Sized, Iterator
 import logging
-from typing import Callable, Optional, TypeVar, Generic, Iterable
+from typing import Callable, Optional, TypeVar, Generic
+
+
+_logger_name = ""
+_use_print = False
+_callback = None
 
 
 def set_default_logger_name(name: str):
