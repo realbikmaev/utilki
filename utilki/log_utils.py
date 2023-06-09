@@ -135,8 +135,8 @@ class progress(Generic[A]):
         self.name = name
         self.num_steps = num_steps
         if self.num_steps > self.len:
-            msg = "num_steps > len(iterator), setting num_steps to len(iterator)"
-            err(msg)
+            # msg = "num_steps > len(iterator), setting num_steps to len(iterator)"
+            # err(msg)
             self.num_steps = self.len
 
         self.map = {}
