@@ -129,7 +129,7 @@ def parse_options(value, type_):
         return type_(value)
 
 
-def parse_list(list_str: str, type_) -> List[Any]:
+def parse_list(list_str: str, type_, name_) -> List[Any]:
     if list_str.startswith("[") and list_str.endswith("]"):
         return json.loads(list_str)
     # TODO: make this a separate tuple parsing function
@@ -140,7 +140,7 @@ def parse_list(list_str: str, type_) -> List[Any]:
     elif "," in list_str:
         return list(map(type_, list_str.split(",")))
     else:
-        raise ValueError("Invalid list format")
+        raise ValueError(f"Invalid list format {name_}: {list_str}")
 
 
 def get_date(param: str):
@@ -155,13 +155,13 @@ def get_date(param: str):
 
 def parse_variations(type_, value, name_):
     if type_ == List[int]:
-        return parse_list(value, int)
+        return parse_list(value, int, name_)
     elif type_ == List[str]:
-        return parse_list(value, str)
+        return parse_list(value, str, name_)
     elif type_ == List[float]:
-        return parse_list(value, float)
+        return parse_list(value, float, name_)
     elif type_ == List[bool]:
-        return parse_list(value, parse_bool)
+        return parse_list(value, parse_bool, name_)
     elif type_ == Union[int, None]:
         return parse_options(value, int)
     elif type_ == Union[str, None]:
