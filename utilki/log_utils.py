@@ -135,9 +135,10 @@ class progress(Generic[A]):
         self.name = name
         self.num_steps = num_steps
         if self.num_steps > self.len:
-            # msg = "num_steps > len(iterator), setting num_steps to len(iterator)"
-            # err(msg)
             self.num_steps = self.len
+
+        if self.num_steps < 1:
+            self.num_steps = 1
 
         self.map = {}
         step_size = 100 / self.num_steps
@@ -218,3 +219,6 @@ if __name__ == "__main__":
     from datetime import datetime
 
     err(datetime.now())
+
+    for i in progress([], name="test5"):
+        time.sleep(0.001)
