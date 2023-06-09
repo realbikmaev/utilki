@@ -202,7 +202,7 @@ def test_task_create_base_model_list_default():
 
 def test_invalid_list_format():
     with raises(ValueError, match="Invalid list format"):
-        parse_list("1;2;3", int)
+        parse_list("1;2;3", int, "whatever")
 
 
 def test_task_create_base_model_list(env_vars_list):
