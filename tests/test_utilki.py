@@ -1,12 +1,14 @@
 import json
-from typing import List, Optional, Dict, Any
-from utilki import TaskMixin
+import os
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-import os
-from pytest import raises, fixture
-from pydantic import BaseModel, Field
+from typing import Any, Dict, List, Optional
 
+from pydantic import BaseModel, Field
+from pydantic.dataclasses import dataclass as pydantic_dataclass
+from pytest import fixture, raises
+
+from utilki import TaskMixin
 from utilki.task_mixin import get_date, parse_list, parse_options
 
 
@@ -160,9 +162,6 @@ def env_vars_list():
     del os.environ["list_of_strs"]
     del os.environ["list_of_floats"]
     del os.environ["list_of_bools"]
-
-
-from pydantic.dataclasses import dataclass as pydantic_dataclass
 
 
 @pydantic_dataclass
@@ -396,6 +395,7 @@ def test_dict_in_dict():
 def test_dict_in_dict_from_env():
     os.environ["ayy"] = json.dumps({"lmao": {"when": "not really soon"}})
     task = DictInDict.create()
+    os.unsetenv("ayy")
     assert task == DictInDict(ayy={"lmao": {"when": "not really soon"}})
 
 
@@ -418,3 +418,13 @@ def test_base_model_field_factory_from_env():
     task = FieldFactory.create()
     assert task.date_from == "2020-01-01"
     assert task.date_to == "2020-01-02"
+
+
+def test_update_method():
+    del os.environ["ayy"]
+    params = {"ayy": 420.0, "lmao": "lmao"}
+
+    task = Task.create()
+    task.update(params)
+    task_default = Task(**params)
+    assert task == task_default

@@ -112,6 +112,13 @@ class TaskMixin:
         else:
             raise TypeError("Invalid type")
 
+    def update(self, param_dict: Dict[str, Any]):
+        for param, value in param_dict.items():
+            if hasattr(self, param):
+                setattr(self, param, value)
+            else:
+                raise ValueError(f"Invalid parameter {param}")
+
 
 def parse_bool(param):
     if param in ["True", "true", True]:
