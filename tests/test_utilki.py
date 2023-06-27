@@ -428,3 +428,19 @@ def test_update_method():
     task.update(params)
     task_default = Task(**params)
     assert task == task_default
+
+
+class ListListStr(BaseModel, TaskMixin):
+    lilis: List[List[str]] = [["lmao"]]
+
+
+def test_list_list_str():
+    task = ListListStr.create()
+    assert task == ListListStr(lilis=[["lmao"]])
+
+
+def test_list_list_str_from_env():
+    os.environ["lilis"] = json.dumps([["lmao"]])
+    task = ListListStr.create()
+    os.unsetenv("lilis")
+    assert task == ListListStr(lilis=[["lmao"]])

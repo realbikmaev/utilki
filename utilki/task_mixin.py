@@ -28,7 +28,7 @@ Defaults = Union[
 
 
 singles = [int, float, str, bool, datetime]
-lists = [List[int], List[float], List[str], List[bool]]
+lists = [List[int], List[float], List[str], List[bool], List[List[str]]]
 options = [
     Union[int, None],
     Union[float, None],
@@ -169,6 +169,8 @@ def parse_variations(type_, value, name_):
         return parse_list(value, float, name_)
     elif type_ == List[bool]:
         return parse_list(value, parse_bool, name_)
+    elif type_ == List[List[str]]:
+        return json.loads(value)
     elif type_ == Union[int, None]:
         return parse_options(value, int)
     elif type_ == Union[str, None]:
@@ -217,3 +219,8 @@ def parse_variations(type_, value, name_):
             return get_date(value)
         else:
             raise TypeError("Invalid datetime format")
+    elif type_ in types_we_support:
+        try:
+            return json.loads(value)
+        except Exception:
+            raise TypeError("Invalid type")
