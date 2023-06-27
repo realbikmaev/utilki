@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime
+from datetime import datetime, date
 from dataclasses import Field
 from pydantic.fields import ModelField
 from typing import (
@@ -28,19 +28,51 @@ Defaults = Union[
 
 
 singles = [int, float, str, bool, datetime]
-lists = [List[int], List[float], List[str], List[bool], List[List[str]]]
+lists = [
+    List[int],
+    List[float],
+    List[str],
+    List[bool],
+    List[datetime],
+    List[List[int]],
+    List[List[float]],
+    List[List[str]],
+    List[List[bool]],
+]
 options = [
     Union[int, None],
     Union[float, None],
     Union[str, None],
     Union[bool, None],
+    Union[datetime, None],
+    Union[List[int], None],
+    Union[List[float], None],
+    Union[List[str], None],
+    Union[List[bool], None],
+    Union[List[datetime], None],
 ]
 
 dicts = [Dict[str, Any], Dict[str, str], Dict[str, int], Dict[str, float]] + [
-    Dict[str, Dict[str, Any]]
+    Dict[str, Dict[str, Any]],
+    Dict[str, Dict[str, str]],
+    Dict[str, Dict[str, int]],
+    Dict[str, Dict[str, float]],
 ]
 
 types_we_support = singles + lists + options + dicts
+
+
+defaults = Union[
+    int,
+    float,
+    str,
+    bool,
+    datetime,
+    List[int],
+    List[float],
+    List[str],
+    List[bool],
+]
 
 IsDefault = bool
 
@@ -161,7 +193,13 @@ def get_date(param: str):
 
 
 def parse_variations(type_, value, name_):
-    if type_ == List[int]:
+    if type_ == bool:
+        return parse_bool(value)
+    elif type_ == int:
+        return int(value)
+    elif type_ == float:
+        return float(value)
+    elif type_ == List[int]:
         return parse_list(value, int, name_)
     elif type_ == List[str]:
         return parse_list(value, str, name_)
@@ -169,8 +207,6 @@ def parse_variations(type_, value, name_):
         return parse_list(value, float, name_)
     elif type_ == List[bool]:
         return parse_list(value, parse_bool, name_)
-    elif type_ == List[List[str]]:
-        return json.loads(value)
     elif type_ == Union[int, None]:
         return parse_options(value, int)
     elif type_ == Union[str, None]:
@@ -187,14 +223,6 @@ def parse_variations(type_, value, name_):
         return json.loads(value)
     elif type_ == Dict[bool, Any]:
         return json.loads(value)
-    elif type_ == Dict[str, Dict[str, Any]]:
-        return json.loads(value)
-    elif type_ == bool:
-        return parse_bool(value)
-    elif type_ == int:
-        return int(value)
-    elif type_ == float:
-        return float(value)
     elif type_ == str:
         try:
             res = json.loads(value)
@@ -204,7 +232,7 @@ def parse_variations(type_, value, name_):
                 return res
         except Exception:
             return str(value)
-    elif type_ == datetime:
+    elif type_ in [datetime, date]:
         # FIXME actually like use proper parsing lmao
         if value.startswith('"') and value.endswith('"'):
             value = value[1:-1]
