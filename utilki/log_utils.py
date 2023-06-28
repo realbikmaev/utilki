@@ -56,6 +56,23 @@ def _get_logger() -> logging.Logger:
     return logging.getLogger(logger_name)
 
 
+def set_logger_level(level: int):
+    logger = _get_logger()
+    logger.setLevel(level)
+
+
+def set_log_info():
+    set_logger_level(logging.INFO)
+
+
+def set_log_debug():
+    set_logger_level(logging.DEBUG)
+
+
+def set_log_warn():
+    set_logger_level(logging.WARNING)
+
+
 def if_level(level: int, message: str):
     _use_print = _get_use_print()
     _callback = _get_callback()
@@ -68,18 +85,30 @@ def if_level(level: int, message: str):
             _callback(message)
 
 
-def dbg(message: Any):
-    message = str(message)
-    logger = _get_logger()
-    if_level(logging.DEBUG, message)
-    logger.debug(message)
+def set_log_fn_level(level: int):
+    globals()["_log_fn_level"] = level
+
+
+def _get_log_fn_level() -> int:
+    try:
+        log_fn_level = globals()["_log_fn_level"]
+    except KeyError:
+        log_fn_level = logging.INFO
+    return log_fn_level
 
 
 def log(message: Any):
     message = str(message)
     logger = _get_logger()
-    if_level(logging.INFO, message)
+    if_level(_get_log_fn_level(), message)
     logger.info(message)
+
+
+def dbg(message: Any):
+    message = str(message)
+    logger = _get_logger()
+    if_level(logging.DEBUG, message)
+    logger.debug(message)
 
 
 def info(message: Any):

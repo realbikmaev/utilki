@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "utilki"
-version = "0.5.2"
+version = "0.5.3"
 description = "A collection of useful utilities"
 readme = "README.md"
 authors = ["Khaidar Bikmaev <khaidar@bikmaev.com>"]
