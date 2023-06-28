@@ -93,7 +93,7 @@ def _get_log_fn_level() -> int:
     try:
         log_fn_level = globals()["_log_fn_level"]
     except KeyError:
-        log_fn_level = logging.INFO
+        log_fn_level = logging.CRITICAL
     return log_fn_level
 
 
