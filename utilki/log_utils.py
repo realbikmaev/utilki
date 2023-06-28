@@ -8,74 +8,91 @@ def set_global(name: str, value: Any):
     globals()[name] = value
 
 
-def get_global(name: str, default=None) -> Optional[Any]:
+def get_global(name: str, default=None) -> Any:
     try:
         return globals()[name]
     except KeyError:
         return None if default is None else default
 
 
-def set_logger_name(name: str):
-    globals()["_logger_name"] = name
+class _logger:
+    def __init__(self, name) -> None:
+        set_global("_logger_name", name)
+        self._hide_level_name = False
+
+    def level(self, level: int):
+        _get_logger().setLevel(level)
+        return self
+
+    def debug(self):
+        return self.level(logging.DEBUG)
+
+    def info(self):
+        return self.level(logging.INFO)
+
+    def warn(self):
+        return self.level(logging.WARNING)
+
+    def error(self):
+        return self.level(logging.ERROR)
+
+    def critical(self):
+        return self.level(logging.CRITICAL)
+
+    def use_print(self, use_print: bool):
+        set_global("_use_print", use_print)
+        return self
+
+    def callback(self, callback: Callable):
+        set_global("_callback", callback)
+        return self
+
+    def hide_level_name(self):
+        self._hide_level_name = True
+
+    def basic_config(self, level: int = logging.WARN):
+        logging.basicConfig(
+            format="%(asctime)s %(message)s"
+            if self._hide_level_name
+            else "%(asctime)s %(levelname)s %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+            # NB: this is the default level of the root logger
+            level=level,
+            stream=sys.stdout,
+        )
+        return self
+
+    def fn_level(self, level: int):
+        """
+        Set the level of the `log(message: str)` function.
+        """
+        set_global("_log_fn_level", level)
+        return self
 
 
-def _get_logger_name() -> Optional[str]:
-    try:
-        logger_name = globals()["_logger_name"]
-    except KeyError:
-        logger_name = None
-    return logger_name
+def logger(name: str) -> _logger:
+    return _logger(name)
 
 
-def set_use_print(use_print: bool):
-    globals()["_use_print"] = use_print
-
-
-def _get_use_print() -> bool:
-    try:
-        use_print = globals()["_use_print"]
-    except KeyError:
-        use_print = False
-    return use_print
-
-
-def set_callback(callback: Callable):
-    globals()["_callback"] = callback
-
-
-def _get_callback() -> Optional[Callable]:
-    try:
-        callback = globals()["_callback"]
-    except KeyError:
-        callback = None
-    return callback
-
-
-def _get_logger() -> logging.Logger:
-    logger_name = _get_logger_name()
-    return logging.getLogger(logger_name)
-
-
-def set_logger_level(level: int):
+def __log_fn(level: int) -> Callable[[str], None]:
     logger = _get_logger()
-    logger.setLevel(level)
+    if level == logging.DEBUG:
+        return logger.debug
+    elif level == logging.INFO:
+        return logger.info
+    elif level == logging.WARNING:
+        return logger.warning
+    elif level == logging.ERROR:
+        return logger.error
+    elif level == logging.CRITICAL:
+        return logger.critical
+    else:
+        return logging.info
 
 
-def set_log_info():
-    set_logger_level(logging.INFO)
-
-
-def set_log_debug():
-    set_logger_level(logging.DEBUG)
-
-
-def set_log_warn():
-    set_logger_level(logging.WARNING)
-
-
-def if_level(level: int, message: str):
-    _use_print = _get_use_print()
-    _callback = _get_callback()
+def _if_level(level: int, message: str):
+    _use_print = get_global("_use_print", False)
+    _callback = get_global("_callback", None)
     _logger = _get_logger()
 
     if _logger.level <= level:
@@ -85,61 +102,51 @@ def if_level(level: int, message: str):
             _callback(message)
 
 
-def set_log_fn_level(level: int):
-    globals()["_log_fn_level"] = level
-
-
-def _get_log_fn_level() -> int:
-    try:
-        log_fn_level = globals()["_log_fn_level"]
-    except KeyError:
-        log_fn_level = logging.CRITICAL
-    return log_fn_level
+def _get_logger() -> logging.Logger:
+    logger_name = get_global("_logger_name")
+    return logging.getLogger(logger_name)
 
 
 def log(message: Any):
     message = str(message)
-    logger = _get_logger()
-    if_level(_get_log_fn_level(), message)
-    logger.info(message)
+    level: int = get_global("_log_fn_level", logging.INFO)
+    _if_level(level, message)
+    __log_fn(level)(message)
 
 
 def dbg(message: Any):
     message = str(message)
     logger = _get_logger()
-    if_level(logging.DEBUG, message)
+    _if_level(logging.DEBUG, message)
+    logger.debug(message)
+
+
+def debug(message: Any):
+    message = str(message)
+    logger = _get_logger()
+    _if_level(logging.DEBUG, message)
     logger.debug(message)
 
 
 def info(message: Any):
     message = str(message)
     logger = _get_logger()
-    if_level(logging.INFO, message)
+    _if_level(logging.INFO, message)
     logger.info(message)
 
 
 def warn(message: Any):
     message = str(message)
     logger = _get_logger()
-    if_level(logging.WARNING, message)
+    _if_level(logging.WARNING, message)
     logger.warning(message)
 
 
 def err(message: Any):
     message = str(message)
     logger = _get_logger()
-    if_level(logging.ERROR, message)
+    _if_level(logging.ERROR, message)
     logger.error(message)
-
-
-def basic_config(level=logging.CRITICAL):
-    logging.basicConfig(
-        format="%(asctime)s %(levelname)s %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-        # NB: this is the default level of the root logger
-        level=level,
-        stream=sys.stdout,
-    )
 
 
 A = TypeVar("A")
@@ -203,12 +210,14 @@ class progress(Generic[A]):
 
 
 if __name__ == "__main__":
+
+    def rev(msg):
+        print(msg[::-1])
+        pass
+
     import time
 
-    set_logger_name("progress")
-
-    # setup basic logging format
-    basic_config()
+    logger("test").info().basic_config()
 
     # too lazy rn to make a proper test suite
     for i in progress(range(101), name="test1"):
@@ -230,17 +239,10 @@ if __name__ == "__main__":
         log(i)
         time.sleep(0.001)
 
-    def rev(msg):
-        print(msg[::-1])
-        pass
-
-    set_use_print(True)
-    set_logger_name("ayy")
-    set_callback(rev)
     log("hello world")
 
-    logging.getLogger("ayy").setLevel(logging.INFO)
-    dbg("debug message")
+    # logging.getLogger("ayy").setLevel(logging.INFO)
+    logger("ayy").info().fn_level(logging.CRITICAL).basic_config()
 
     set_global("ayy", "lmao")
     value = get_global("ayy")
