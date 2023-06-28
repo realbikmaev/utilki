@@ -69,6 +69,21 @@ class _logger:
         set_global("_log_fn_level", level)
         return self
 
+    def fn_debug(self):
+        return self.fn_level(logging.DEBUG)
+
+    def fn_info(self):
+        return self.fn_level(logging.INFO)
+
+    def fn_warn(self):
+        return self.fn_level(logging.WARNING)
+
+    def fn_error(self):
+        return self.fn_level(logging.ERROR)
+
+    def fn_critical(self):
+        return self.fn_level(logging.CRITICAL)
+
 
 def logger(name: str) -> _logger:
     return _logger(name)
