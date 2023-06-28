@@ -103,11 +103,12 @@ def err(message: Any):
     logger.error(message)
 
 
-def basic_config():
+def basic_config(level=logging.CRITICAL):
     logging.basicConfig(
         format="%(asctime)s %(levelname)s %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
-        level=logging.DEBUG,
+        # NB: this is the default level of the root logger
+        level=level,
         stream=sys.stdout,
     )
 
