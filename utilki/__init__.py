@@ -16,4 +16,9 @@ from .log_utils import (
     basic_config,
     set_global,
     get_global,
+    set_log_debug,
+    set_log_info,
+    set_log_warn,
+    set_log_fn_level,
+    set_logger_level,
 )
