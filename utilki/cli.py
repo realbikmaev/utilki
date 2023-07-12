@@ -28,6 +28,7 @@ def cli():
 )
 def venv(python_version):
     # Create the virtual environment with the given name and Python version
+    click.echo(f"Creating venv with Python version {python_version}")
     venv_name = click.prompt("Enter venv name", type=str)
     res = subprocess.run(
         ["pyenv", "virtualenv", python_version, venv_name],
