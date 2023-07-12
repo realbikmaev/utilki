@@ -10,7 +10,7 @@ def get_list_of_python_versions():
     )
     if res.returncode != 0:
         click.echo(res.stderr)
-        return
+        return []
     versions = res.stdout.splitlines()
     return [version.strip() for version in versions[1:]]
 
