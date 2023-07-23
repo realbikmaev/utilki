@@ -2,6 +2,7 @@ from collections.abc import Sized, Iterator
 import logging
 import sys
 from typing import Any, Callable, Optional, TypeVar, Generic, Iterable
+import pandas as pd
 
 
 def set_global(name: str, value: Any):
@@ -175,7 +176,7 @@ class progress(Generic[A]):
         num_steps: int = 10,
         precision: int = 1,
         print_idx: bool = False,
-    ):
+    ) -> None:
         if not isinstance(iterator, Iterable):
             raise ValueError("Passed object is not iterable")
         if not isinstance(iterator, Sized):
@@ -183,6 +184,8 @@ class progress(Generic[A]):
 
         self.print_idx = print_idx
         self.iterator: Iterator[A] = iter(iterator)
+        if isinstance(iterator, pd.DataFrame):
+            self.iterator = iterator.iterrows()  # type: ignore
         self.len = len(iterator)
         self.name = name
         self.num_steps = num_steps
@@ -257,7 +260,7 @@ if __name__ == "__main__":
     log("hello world")
 
     # logging.getLogger("ayy").setLevel(logging.INFO)
-    logger("ayy").info().fn_level(logging.CRITICAL).basic_config()
+    logger("ayy").info().fn_info().basic_config()
 
     set_global("ayy", "lmao")
     value = get_global("ayy")
@@ -268,4 +271,10 @@ if __name__ == "__main__":
     err(datetime.now())
 
     for i in progress([], name="test5"):
+        time.sleep(0.001)
+
+    a = pd.DataFrame([{"a": 1, "b": 2}, {"a": 3, "b": 4}])
+
+    for idx, row in progress(a, name="test6"):  # type: ignore
+        log(row)
         time.sleep(0.001)
