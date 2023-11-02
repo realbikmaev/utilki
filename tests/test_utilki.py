@@ -31,11 +31,11 @@ def env_vars():
     os.environ["should_i_smoke"] = "True"
     os.environ["how_many_times"] = "420"
     yield
-    del os.environ["ayy"]
-    del os.environ["lmao"]
-    del os.environ["when_to_smoke"]
-    del os.environ["should_i_smoke"]
-    del os.environ["how_many_times"]
+    os.environ.pop("ayy", None)
+    os.environ.pop("lmao", None)
+    os.environ.pop("when_to_smoke", None)
+    os.environ.pop("should_i_smoke", None)
+    os.environ.pop("how_many_times", None)
 
 
 @fixture
@@ -119,11 +119,11 @@ def incorrect_env_vars():
     os.environ["should_i_smoke"] = "tru"
     os.environ["how_many_times"] = "420"
     yield
-    del os.environ["ayy"]
-    del os.environ["lmao"]
-    del os.environ["when_to_smoke"]
-    del os.environ["should_i_smoke"]
-    del os.environ["how_many_times"]
+    os.environ.pop("ayy", None)
+    os.environ.pop("lmao", None)
+    os.environ.pop("when_to_smoke", None)
+    os.environ.pop("should_i_smoke", None)
+    os.environ.pop("how_many_times", None)
 
 
 def test_task_create_invalid_bool(incorrect_env_vars):
@@ -158,10 +158,10 @@ def env_vars_list():
     os.environ["list_of_floats"] = "4.0,5.0,6.0"
     os.environ["list_of_bools"] = "True,False,true"
     yield
-    del os.environ["list_of_ints"]
-    del os.environ["list_of_strs"]
-    del os.environ["list_of_floats"]
-    del os.environ["list_of_bools"]
+    os.environ.pop("list_of_ints", None)
+    os.environ.pop("list_of_strs", None)
+    os.environ.pop("list_of_floats", None)
+    os.environ.pop("list_of_bools", None)
 
 
 @pydantic_dataclass
@@ -173,7 +173,7 @@ def test_task_create_dataclass():
     os.environ["should_i_smoke"] = "False"
     task = TaskPydanticDataclass.create()
     assert task == TaskPydanticDataclass()
-    del os.environ["should_i_smoke"]
+    os.environ.pop("should_i_smoke", None)
 
 
 class TaskBaseModel(BaseModel, TaskMixin):
@@ -184,7 +184,7 @@ def test_task_create_base_model():
     os.environ["should_i_smoke"] = "False"
     task = TaskBaseModel.create()
     assert task == TaskBaseModel()
-    del os.environ["should_i_smoke"]
+    os.environ.pop("should_i_smoke", None)
 
 
 class TaskBaseModelList(BaseModel, TaskMixin):
@@ -233,7 +233,7 @@ class OptionalIntTask(BaseModel, TaskMixin):
 def optional_int_env_vars():
     os.environ["how_many_times"] = "None"
     yield
-    del os.environ["how_many_times"]
+    os.environ.pop("how_many_times", None)
 
 
 def test_optional_int(optional_int_env_vars):
@@ -275,15 +275,60 @@ def optional_env_vars():
     os.environ["floats"] = ""
     os.environ["bools"] = "NULL"
     yield
-    del os.environ["ints"]
-    del os.environ["strs"]
-    del os.environ["floats"]
-    del os.environ["bools"]
+    os.environ.pop("ints", None)
+    os.environ.pop("strs", None)
+    os.environ.pop("floats", None)
+    os.environ.pop("bools", None)
 
 
 def test_optional(optional_env_vars):
     task = OptionalTask.create()
     assert task == OptionalTask(ints=None, strs=None, floats=None, bools=None)
+
+
+class DictTask(BaseModel, TaskMixin):
+    ints: Dict[int, Any] = {1: "ayy"}
+    strs: Dict[str, Any] = {"ayy": "lmao"}
+    floats: Dict[float, Any] = {1.0: "ayy"}
+    bools: Dict[bool, Any] = {True: "ayy"}
+
+
+@fixture
+def dict_env_vars():
+    os.environ["ints"] = json.dumps({2: "ayy"})
+    os.environ["strs"] = json.dumps({"lmao": "ayy"})
+    os.environ["floats"] = json.dumps({2.0: "ayy"})
+    os.environ["bools"] = json.dumps({False: "ayy"})
+    yield
+    os.environ.pop("ints", None)
+    os.environ.pop("strs", None)
+    os.environ.pop("floats", None)
+    os.environ.pop("bools", None)
+
+
+def test_dict(dict_env_vars):
+    task = DictTask.create()
+    assert task == DictTask(
+        ints={2: "ayy"},
+        strs={"lmao": "ayy"},
+        floats={2.0: "ayy"},
+        bools={False: "ayy"},
+    )
+
+
+class WrongDefaultsList(BaseModel, TaskMixin):
+    lst: List[int] = 1  # type: ignore
+
+
+class WrongDefaultsDict(BaseModel, TaskMixin):
+    dct: Dict[str, int] = 1  # type: ignore
+
+
+def test_wrong_defaults():
+    with raises(TypeError):
+        WrongDefaultsList.create()
+    with raises(TypeError):
+        WrongDefaultsDict.create()
 
 
 class JsonEncodedLists(BaseModel, TaskMixin):
@@ -318,19 +363,19 @@ def json_encoded_lists_env_vars():
     os.environ["optional_float"] = json.dumps(None)
     os.environ["optional_bool"] = json.dumps(None)
     yield
-    del os.environ["list_ints"]
-    del os.environ["list_strs"]
-    del os.environ["list_floats"]
-    del os.environ["list_bools"]
-    del os.environ["ints"]
-    del os.environ["strs"]
-    del os.environ["floats"]
-    del os.environ["bools"]
-    del os.environ["datetimes"]
-    del os.environ["optional_int"]
-    del os.environ["optional_str"]
-    del os.environ["optional_float"]
-    del os.environ["optional_bool"]
+    os.environ.pop("list_ints", None)
+    os.environ.pop("list_strs", None)
+    os.environ.pop("list_floats", None)
+    os.environ.pop("list_bools", None)
+    os.environ.pop("ints", None)
+    os.environ.pop("strs", None)
+    os.environ.pop("floats", None)
+    os.environ.pop("bools", None)
+    os.environ.pop("datetimes", None)
+    os.environ.pop("optional_int", None)
+    os.environ.pop("optional_str", None)
+    os.environ.pop("optional_float", None)
+    os.environ.pop("optional_bool", None)
 
 
 def test_json_encoded_lists(json_encoded_lists_env_vars):
@@ -421,13 +466,22 @@ def test_base_model_field_factory_from_env():
 
 
 def test_update_method():
-    del os.environ["ayy"]
+    os.environ.pop("ayy", None)
     params = {"ayy": 420.0, "lmao": "lmao"}
 
     task = Task.create()
     task.update(params)
     task_default = Task(**params)
     assert task == task_default
+
+
+def test_update_value_error():
+    os.environ.pop("ayy", None)
+    params = {"ayy": 420.0, "incorrect": "lmao"}
+
+    task = Task.create()
+    with raises(ValueError):
+        task.update(params)
 
 
 class ListListStr(BaseModel, TaskMixin):
@@ -444,3 +498,14 @@ def test_list_list_str_from_env():
     task = ListListStr.create()
     os.unsetenv("lilis")
     assert task == ListListStr(lilis=[["lmao"]])
+
+
+class MalformedComplexType(BaseModel, TaskMixin):
+    ayy: Dict[Any, str] = {1: "lmao"}
+
+
+def test_malformed_complex_type():
+    os.environ["ayy"] = json.dumps({1: "lmao"})[1:-1]
+
+    with raises(TypeError):
+        MalformedComplexType.create()

@@ -52,12 +52,22 @@ options = [
     Union[List[datetime], None],
 ]
 
-dicts = [Dict[str, Any], Dict[str, str], Dict[str, int], Dict[str, float]] + [
-    Dict[str, Dict[str, Any]],
-    Dict[str, Dict[str, str]],
-    Dict[str, Dict[str, int]],
-    Dict[str, Dict[str, float]],
-]
+dicts = (
+    [Dict[str, Any], Dict[str, str], Dict[str, int], Dict[str, float]]
+    + [
+        Dict[str, Dict[str, Any]],
+        Dict[str, Dict[str, str]],
+        Dict[str, Dict[str, int]],
+        Dict[str, Dict[str, float]],
+    ]
+    + [
+        Dict[Any, Any],
+        Dict[Any, str],
+        Dict[Any, int],
+        Dict[Any, float],
+        Dict[Any, bool],
+    ]
+)
 
 types_we_support = singles + lists + options + dicts
 
@@ -127,22 +137,13 @@ class TaskMixin:
                 raise TypeError("Invalid type")
             if type_ in lists and not isinstance(value, list):
                 raise TypeError("Invalid type")
+            if type_ in dicts and not isinstance(value, dict):
+                raise TypeError("Invalid type")
             else:
                 return value
-        if isinstance(value, str):
+        else:
             res = parse_variations(type_, value, name_)
             return res
-        elif isinstance(value, list):
-            if type_ in [List[int], List[str], List[float], List[bool]]:
-                return value
-        elif isinstance(value, datetime):
-            if type_ == datetime:
-                return value
-        elif type_ in [int, str, float, bool]:
-            if isinstance(value, type_):
-                return value
-        else:
-            raise TypeError("Invalid type")
 
     def update(self, param_dict: Dict[str, Any]):
         for param, value in param_dict.items():

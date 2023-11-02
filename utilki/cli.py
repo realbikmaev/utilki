@@ -15,6 +15,18 @@ def get_list_of_python_versions():
     return [version.strip() for version in versions[1:]]
 
 
+def get_current_version():
+    res = subprocess.run(
+        ["pyenv", "version"],
+        capture_output=True,
+        text=True,
+    )
+    if res.returncode != 0:
+        click.echo(res.stderr)
+        return ""
+    return res.stdout.strip().split(" ")[0]
+
+
 @click.group(name="utilki")
 def cli():
     pass
@@ -24,7 +36,7 @@ def cli():
 @click.argument(
     "python_version",
     type=click.Choice(get_list_of_python_versions()),
-    default="3.8.10",
+    default=get_current_version(),
 )
 def venv(python_version):
     # Create the virtual environment with the given name and Python version
