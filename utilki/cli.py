@@ -1,6 +1,9 @@
 import click
 import subprocess
 
+# FIXME: all this shit looks overcomplicated cuz subprocess api is retarded
+# TODO use `result` pkg and make it all look rusty with wrappers
+
 
 def get_list_of_python_versions():
     res = subprocess.run(
@@ -50,7 +53,7 @@ def venv(python_version):
     if res.returncode != 0:
         if "is not installed" in res.stderr:
             response = click.prompt(
-                f"Python version {python_version} is not installed. Install it?",
+                f"Python version {python_version} is not installed. Install it?",  # noqa
                 type=click.Choice(["y", "n"]),
                 default="y",
             )
@@ -78,7 +81,9 @@ def venv(python_version):
                     click.echo(res.stderr)
                     return
 
-    click.echo(f"Created venv `{venv_name}` with Python version {python_version}")
+    click.echo(
+        f"Created venv `{venv_name}` with Python version {python_version}"
+    )
 
 
 if __name__ == "__main__":
