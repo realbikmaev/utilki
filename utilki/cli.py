@@ -78,9 +78,7 @@ def venv(python_version):
                     click.echo(res.stderr)
                     return
 
-    click.echo(
-        f"Created venv `{venv_name}` with Python version {python_version}"
-    )
+    click.echo(f"Created venv `{venv_name}` with Python version {python_version}")
 
 
 if __name__ == "__main__":
