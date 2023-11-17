@@ -61,46 +61,46 @@ def test_task_create_default():
     assert task == Task()
 
 
-def test_task_create_env_vars(env_vars, parsed_task):
+def test_task_create_env_vars(env_vars: None, parsed_task: Task):
     task = Task.create()
     assert task == parsed_task
 
 
-def test_task_create_invalid_datetime(env_vars):
+def test_task_create_invalid_datetime(env_vars: None):
     os.environ["when_to_smoke"] = "invalid datetime"
     with raises(TypeError, match="Invalid datetime format"):
         Task.create()
 
 
-def test_task_create_invalid_datetime_2(env_vars):
+def test_task_create_invalid_datetime_2(env_vars: None):
     os.environ["when_to_smoke"] = "2012-12-12 12:12:12 invalid"
     with raises(ValueError, match="invalid literal"):
         Task.create()
 
 
-def test_valid_datetime(env_vars, parsed_task):
+def test_valid_datetime(env_vars: None, parsed_task: Task):
     os.environ["when_to_smoke"] = "2012-12-12T12:12:12"
     task = Task.create()
     assert task == parsed_task
 
 
-def test_invalid_datetime(env_vars):
+def test_invalid_datetime(env_vars: None):
     with raises(ValueError, match="Invalid datetime format"):
         get_date("2022-02")
 
 
-def test_parse_str_exception(env_vars):
+def test_parse_str_exception(env_vars: None):
     os.environ["lmao"] = "a: 1"
     task = Task.create()
     assert task.lmao == "a: 1"
 
 
-def test_init_ellipsis(env_vars):
+def test_init_ellipsis(env_vars: None):
     mixin = TaskMixin.__init__()
     assert mixin is None
 
 
-def test_valid_datetime_2(env_vars, parsed_task):
+def test_valid_datetime_2(env_vars: None, parsed_task: Task):
     os.environ["when_to_smoke"] = "2012-12-12"
     task = Task.create()
     parsed_task.when_to_smoke = datetime(
@@ -126,7 +126,7 @@ def incorrect_env_vars():
     os.environ.pop("how_many_times", None)
 
 
-def test_task_create_invalid_bool(incorrect_env_vars):
+def test_task_create_invalid_bool(incorrect_env_vars: None):
     with raises(TypeError, match="Invalid boolean format"):
         Task.create()
 
@@ -143,7 +143,7 @@ def test_task_create_invalid_default():
 
 @dataclass
 class TypeWeDontSupport(TaskMixin):
-    when_i_has_incorrect_default: frozenset = frozenset()
+    when_i_has_incorrect_default: frozenset = frozenset()  # type: ignore
 
 
 def test_task_create_invalid_type():
@@ -204,7 +204,7 @@ def test_invalid_list_format():
         parse_list("1;2;3", int, "whatever")
 
 
-def test_task_create_base_model_list(env_vars_list):
+def test_task_create_base_model_list(env_vars_list: None):
     task = TaskBaseModelList.create()
     assert task == TaskBaseModelList(
         list_of_ints=[4, 5, 6],
@@ -236,7 +236,7 @@ def optional_int_env_vars():
     os.environ.pop("how_many_times", None)
 
 
-def test_optional_int(optional_int_env_vars):
+def test_optional_int(optional_int_env_vars: None):
     task = OptionalIntTask.create()
     assert task == OptionalIntTask(how_many_times=None)
 
@@ -281,7 +281,7 @@ def optional_env_vars():
     os.environ.pop("bools", None)
 
 
-def test_optional(optional_env_vars):
+def test_optional(optional_env_vars: None):
     task = OptionalTask.create()
     assert task == OptionalTask(ints=None, strs=None, floats=None, bools=None)
 
@@ -306,7 +306,7 @@ def dict_env_vars():
     os.environ.pop("bools", None)
 
 
-def test_dict(dict_env_vars):
+def test_dict(dict_env_vars: None):
     task = DictTask.create()
     assert task == DictTask(
         ints={2: "ayy"},
@@ -378,7 +378,7 @@ def json_encoded_lists_env_vars():
     os.environ.pop("optional_bool", None)
 
 
-def test_json_encoded_lists(json_encoded_lists_env_vars):
+def test_json_encoded_lists(json_encoded_lists_env_vars: None):
     task = JsonEncodedLists.create()
     assert task == JsonEncodedLists(
         list_ints=[4, 5, 6],
@@ -471,7 +471,7 @@ def test_update_method():
 
     task = Task.create()
     task.update(params)
-    task_default = Task(**params)
+    task_default = Task(**params)  # type: ignore
     assert task == task_default
 
 

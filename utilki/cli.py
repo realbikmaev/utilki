@@ -1,11 +1,11 @@
 from copy import deepcopy
-from click import echo, prompt, Choice as choice, group, argument, option
+from click import echo, prompt, Choice as choice, group, argument
 import subprocess
-from typing import Dict, Hashable, List, Tuple, TypeVar
+from typing import Dict, Hashable, List, TypeVar
 from result import Result, Ok, Err
 
 
-def sh(cmd: str, default=None) -> Result[List[str], str]:
+def sh(cmd: str, default: List[str] = []) -> Result[List[str], str]:
     process = subprocess.run(
         [arg for arg in cmd.split(" ")],
         capture_output=True,
@@ -61,7 +61,7 @@ def sort_versions(versions: List[str]) -> List[str]:
 
 
 def list_versions() -> None:
-    versions: List[str] = sh("pyenv install --list").unwrap_or([])
+    versions: List[str] = sh("pyenv install --list").unwrap_or([""])
     global _all_versions
     for version in versions[1:]:
         if version.startswith("2.") or version.startswith("3."):
@@ -91,7 +91,7 @@ if len(_installed) == 0:
     newest_version()
 
 
-def not_installed(version) -> Result[str, str]:
+def not_installed(version: str) -> Result[str, str]:
     echo(f"python version {version} is not installed")
     response = prompt(
         f"python version {version} is not installed. install it?",
@@ -123,7 +123,7 @@ def cli():
     type=choice(_all_versions),
     default=_installed[0],
 )
-def venv(version):
+def venv(version: str):
     global _all_versions
     global _installed
 
@@ -140,6 +140,8 @@ def venv(version):
                 return
             case Err("decline_err"):
                 return
+            case _:
+                pass
 
     elif version not in _all_versions:
         print("lmao")

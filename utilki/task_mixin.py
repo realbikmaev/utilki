@@ -5,11 +5,13 @@ from dataclasses import Field
 from pydantic.fields import ModelField
 from typing import (
     Any,
+    Callable,
     ClassVar,
     Dict,
     Iterable,
     List,
     Tuple,
+    TypeVar,
     Union,
 )
 
@@ -92,18 +94,17 @@ class TaskMixin:
     __fields__: ClassVar[Dict[str, Any]]
 
     @classmethod
-    def __init__(cls, **kwargs):
-        ...
+    def __init__(cls, **kwargs: Any): ...
 
     @classmethod
     def create(cls):
-        params: List[Tuple[str, Any]] = []
+        params: List[Tuple[str, Any]] = []  # type: ignore
         if hasattr(cls, "__dataclass_fields__"):
-            fields: Iterable[Field] = cls.__dataclass_fields__.values()
+            fields: Iterable[Field[Any]] = cls.__dataclass_fields__.values()  # type: ignore # noqa
             for field in fields:
                 params.append((field.name, field.type))
         elif hasattr(cls, "__fields__"):
-            model_fields: Iterable[ModelField] = cls.__fields__.values()
+            model_fields: Iterable[ModelField] = cls.__fields__.values()  # type: ignore # noqa
             for model_field in model_fields:
                 params.append((model_field.name, model_field.annotation))
         else:
@@ -112,12 +113,12 @@ class TaskMixin:
         return task
 
     @classmethod
-    def get_default(cls, name_) -> Tuple[IsDefault, Defaults]:
+    def get_default(cls, name_: str) -> Tuple[IsDefault, Defaults]:
         env_var = os.getenv(name_)
         if env_var is not None:
             return False, env_var
         if hasattr(cls, "__dataclass_fields__"):
-            field: Field = cls.__dataclass_fields__[name_]
+            field: Field[Any] = cls.__dataclass_fields__[name_]
             result: Any = field.default
             return True, result
         elif hasattr(cls, "__fields__"):
@@ -128,7 +129,7 @@ class TaskMixin:
             raise TypeError("Invalid type")
 
     @classmethod
-    def parse(cls, name_, type_):
+    def parse(cls, name_: str, type_: type):
         is_default, value = cls.get_default(name_)
         if is_default:
             if type_ not in types_we_support:
@@ -153,7 +154,7 @@ class TaskMixin:
                 raise ValueError(f"Invalid parameter {param}")
 
 
-def parse_bool(param):
+def parse_bool(param: str) -> bool:
     if param in ["True", "true", True]:
         return True
     elif param in ["False", "false", False]:
@@ -162,21 +163,21 @@ def parse_bool(param):
         raise TypeError("Invalid boolean format")
 
 
-def parse_options(value, type_):
+T = TypeVar("T")
+
+
+def parse_options(value: str, type_: Callable[[str], T]) -> Union[T, None]:
     if value in ["None", "none", None, "null", "NULL", ""]:
         return None
     else:
         return type_(value)
 
 
-def parse_list(list_str: str, type_, name_) -> List[Any]:
+def parse_list(
+    list_str: str, type_: Callable[[str], T], name_: str
+) -> List[T]:
     if list_str.startswith("[") and list_str.endswith("]"):
         return json.loads(list_str)
-    # TODO: make this a separate tuple parsing function
-    # elif list_str.startswith("(") and list_str.endswith(")"):
-    #     list_str.replace("(", "[")
-    #     list_str.replace(")", "]")
-    #     return json.loads(list_str)
     elif "," in list_str:
         return list(map(type_, list_str.split(",")))
     else:
@@ -193,7 +194,7 @@ def get_date(param: str):
         raise ValueError("Invalid datetime format")
 
 
-def parse_variations(type_, value, name_):
+def parse_variations(type_: type, value: Any, name_: str):
     if type_ == bool:
         return parse_bool(value)
     elif type_ == int:
@@ -227,7 +228,7 @@ def parse_variations(type_, value, name_):
     elif type_ == str:
         try:
             res = json.loads(value)
-            if type(res) == int:
+            if not isinstance(res, str):
                 return str(res)
             else:
                 return res

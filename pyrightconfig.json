@@ -1,3 +1,4 @@
 {
-    "reportUnknownMemberType": "none"
+    "reportUnknownMemberType": "none",
+    "reportMatchNotExhaustive": "error"
 }
