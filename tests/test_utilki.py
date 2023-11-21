@@ -9,7 +9,7 @@ from pydantic.dataclasses import dataclass as pydantic_dataclass
 from pytest import fixture, raises
 
 from utilki import TaskMixin
-from utilki.task_mixin import get_date, parse_list, parse_options
+from utilki.task_mixin import ParseError, get_date, parse_list, parse_options
 
 
 @dataclass
@@ -68,13 +68,13 @@ def test_task_create_env_vars(env_vars: None, parsed_task: Task):
 
 def test_task_create_invalid_datetime(env_vars: None):
     os.environ["when_to_smoke"] = "invalid datetime"
-    with raises(TypeError, match="Invalid datetime format"):
+    with raises(ParseError):
         Task.create()
 
 
 def test_task_create_invalid_datetime_2(env_vars: None):
     os.environ["when_to_smoke"] = "2012-12-12 12:12:12 invalid"
-    with raises(ValueError, match="invalid literal"):
+    with raises(ParseError):
         Task.create()
 
 
@@ -127,7 +127,7 @@ def incorrect_env_vars():
 
 
 def test_task_create_invalid_bool(incorrect_env_vars: None):
-    with raises(TypeError, match="Invalid boolean format"):
+    with raises(ParseError):
         Task.create()
 
 
@@ -507,5 +507,5 @@ class MalformedComplexType(BaseModel, TaskMixin):
 def test_malformed_complex_type():
     os.environ["ayy"] = json.dumps({1: "lmao"})[1:-1]
 
-    with raises(TypeError):
+    with raises(ParseError):
         MalformedComplexType.create()

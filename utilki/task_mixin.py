@@ -89,6 +89,9 @@ defaults = Union[
 IsDefault = bool
 
 
+class ParseError(Exception):
+    pass
+
 class TaskMixin:
     __dataclass_fields__: ClassVar[Dict[str, Any]]
     __fields__: ClassVar[Dict[str, Any]]
@@ -143,7 +146,10 @@ class TaskMixin:
             else:
                 return value
         else:
-            res = parse_variations(type_, value, name_)
+            try:
+                res = parse_variations(type_, value, name_)
+            except Exception as e:
+                raise ParseError(f"{name_=} {value=} {type_=})") from e
             return res
 
     def update(self, param_dict: Dict[str, Any]):
