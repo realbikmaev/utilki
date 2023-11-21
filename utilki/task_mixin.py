@@ -1,5 +1,6 @@
-import json
 import os
+import ast
+import json
 from datetime import datetime, date
 from dataclasses import Field
 from pydantic.fields import ModelField
@@ -183,7 +184,10 @@ def parse_list(
     list_str: str, type_: Callable[[str], T], name_: str
 ) -> List[T]:
     if list_str.startswith("[") and list_str.endswith("]"):
-        return json.loads(list_str)
+        try:
+            return json.loads(list_str)
+        except json.JSONDecodeError:
+            return ast.literal_eval(list_str)
     elif "," in list_str:
         return list(map(type_, list_str.split(",")))
     else:

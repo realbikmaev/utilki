@@ -506,6 +506,18 @@ class MalformedComplexType(BaseModel, TaskMixin):
 
 def test_malformed_complex_type():
     os.environ["ayy"] = json.dumps({1: "lmao"})[1:-1]
-
     with raises(ParseError):
         MalformedComplexType.create()
+    os.unsetenv("ayy")
+
+
+class KubernetesEdgecase(BaseModel, TaskMixin):
+    names: List[str] = ["bob"]
+
+
+def test_kubernetes_edgecase():
+    os.environ["names"] = "['bob', 'alice', 'ricardo']"
+
+    task = KubernetesEdgecase.create()
+
+    assert task == KubernetesEdgecase(names=['bob', 'alice', 'ricardo'])
