@@ -263,4 +263,7 @@ def parse_variations(type_: type, value: Any, name_: str):
         try:
             return json.loads(value)
         except Exception:
-            raise TypeError("Invalid type")
+            try:
+                return ast.literal_eval(value)
+            except Exception:
+                raise TypeError("Invalid type")
