@@ -1,9 +1,8 @@
-import os
 import ast
 import json
-from datetime import datetime, date
+import os
 from dataclasses import Field
-from pydantic.fields import ModelField
+from datetime import date, datetime
 from typing import (
     Any,
     Callable,
@@ -16,6 +15,7 @@ from typing import (
     Union,
 )
 
+from pydantic.fields import ModelField
 
 Defaults = Union[
     datetime,
@@ -93,6 +93,7 @@ IsDefault = bool
 class ParseError(Exception):
     pass
 
+
 class TaskMixin:
     __dataclass_fields__: ClassVar[Dict[str, Any]]
     __fields__: ClassVar[Dict[str, Any]]
@@ -162,12 +163,13 @@ class TaskMixin:
 
 
 def parse_bool(param: str) -> bool:
-    if param in ["True", "true", True]:
+    if param in {"True", "true", True}:
         return True
-    elif param in ["False", "false", False]:
+    elif param in {"False", "false", False}:
         return False
     else:
-        raise TypeError("Invalid boolean format")
+        msg = "Invalid boolean format"
+        raise TypeError(msg)
 
 
 T = TypeVar("T")
@@ -181,7 +183,9 @@ def parse_options(value: str, type_: Callable[[str], T]) -> Union[T, None]:
 
 
 def parse_list(
-    list_str: str, type_: Callable[[str], T], name_: str
+    list_str: str,
+    type_: Callable[[str], T],
+    name_: str,
 ) -> List[T]:
     if list_str.startswith("[") and list_str.endswith("]"):
         try:
@@ -205,11 +209,11 @@ def get_date(param: str):
 
 
 def parse_variations(type_: type, value: Any, name_: str):
-    if type_ == bool:
+    if type_ == bool:  # noqa: E721
         return parse_bool(value)
-    elif type_ == int:
+    elif type_ == int:  # noqa: E721
         return int(value)
-    elif type_ == float:
+    elif type_ == float:  # noqa: E721
         return float(value)
     elif type_ == List[int]:
         return parse_list(value, int, name_)
@@ -235,7 +239,7 @@ def parse_variations(type_: type, value: Any, name_: str):
         return json.loads(value)
     elif type_ == Dict[bool, Any]:
         return json.loads(value)
-    elif type_ == str:
+    elif type_ == str:  # noqa: E721
         try:
             res = json.loads(value)
             if not isinstance(res, str):

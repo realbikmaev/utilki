@@ -34,4 +34,26 @@ quote-style = "double"
 indent-style = "space"
 
 [tool.ruff.lint]
-select = ["ALL"]
+ignore = [
+    "ANN201",
+    "CPY001",
+    "D100",
+    "D101",
+    "D103",
+    "DTZ005",
+    "DTZ011",
+    "FA100",
+    "PGH003",
+    "PGH004",
+    "S105",
+    "S106",
+    "PLW1514",
+    "PLR2004",
+]
+
+# select = ["ALL"]
+
+
+[tool.mypy]
+no_silence_site_packages = true
+ignore_missing_imports = true
