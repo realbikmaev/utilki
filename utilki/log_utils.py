@@ -1,7 +1,8 @@
 from collections.abc import Sized, Iterator
 import logging
 import sys
-from typing import Any, Callable, Optional, TypeVar, Generic, Iterable
+import traceback
+from typing import Any, Callable, TypeVar, Generic, Iterable
 import pandas as pd
 
 
@@ -9,7 +10,7 @@ def set_global(name: str, value: Any):
     globals()[name] = value
 
 
-def get_global(name: str, default=None) -> Any:
+def get_global(name: str, default: Any = None) -> Any:
     try:
         return globals()[name]
     except KeyError:
@@ -17,7 +18,7 @@ def get_global(name: str, default=None) -> Any:
 
 
 class _logger:
-    def __init__(self, name) -> None:
+    def __init__(self, name: str) -> None:
         set_global("_logger_name", name)
         self._hide_level_name = False
 
@@ -44,7 +45,7 @@ class _logger:
         set_global("_use_print", use_print)
         return self
 
-    def callback(self, callback: Callable):
+    def callback(self, callback: Callable[[], None]):
         set_global("_callback", callback)
         return self
 
@@ -165,6 +166,14 @@ def err(message: Any):
     logger.error(message)
 
 
+def tb():
+    if sys.exc_info()[0]:  # type: ignore # noqa
+        message = traceback.format_exc()
+        logger = _get_logger()
+        _if_level(logging.ERROR, message)
+        logger.error(message)
+
+
 A = TypeVar("A")
 
 
@@ -177,7 +186,7 @@ class progress(Generic[A]):
         precision: int = 1,
         print_idx: bool = False,
     ) -> None:
-        if not isinstance(iterator, Iterable):
+        if not isinstance(iterator, Iterable):  # type: ignore
             raise ValueError("Passed object is not iterable")
         if not isinstance(iterator, Sized):
             raise ValueError("Passed object does not have a size")
