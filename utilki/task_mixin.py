@@ -96,7 +96,7 @@ class ParseError(Exception):
 
 
 class TaskMixin:
-    __dataclass_fields__: ClassVar[Dict[str, Field[Any]]]
+    __dataclass_fields__: ClassVar[Dict[str, Field]]  # type: ignore
     # model_fields: ClassVar[Dict[str, FieldInfo]]
 
     @classmethod
@@ -123,8 +123,7 @@ class TaskMixin:
         if env_var is not None:
             return False, env_var
         if hasattr(cls, "__dataclass_fields__"):
-            field: Field[Any] = cls.__dataclass_fields__[name_]
-            result: Any = field.default
+            result = cls.__dataclass_fields__[name_].default
             return True, result
         elif hasattr(cls, "model_fields"):
             model_field: FieldInfo = cls.model_fields[name_]  # type: ignore # noqa
