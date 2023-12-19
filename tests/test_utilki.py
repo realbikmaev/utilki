@@ -520,4 +520,4 @@ def test_kubernetes_edgecase():
 
     task = KubernetesEdgecase.create()
 
-    assert task == KubernetesEdgecase(names=['bob', 'alice', 'ricardo'])
+    assert task == KubernetesEdgecase(names=["bob", "alice", "ricardo"])

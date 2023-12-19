@@ -15,7 +15,8 @@ from typing import (
     Union,
 )
 
-from pydantic.fields import ModelField
+from pydantic import Field as ModelField
+from pydantic.fields import FieldInfo
 
 Defaults = Union[
     datetime,
@@ -95,8 +96,8 @@ class ParseError(Exception):
 
 
 class TaskMixin:
-    __dataclass_fields__: ClassVar[Dict[str, Any]]
-    __fields__: ClassVar[Dict[str, Any]]
+    __dataclass_fields__: ClassVar[Dict[str, Field[Any]]]
+    # model_fields: ClassVar[Dict[str, FieldInfo]]
 
     @classmethod
     def __init__(cls, **kwargs: Any): ...
@@ -108,10 +109,9 @@ class TaskMixin:
             fields: Iterable[Field[Any]] = cls.__dataclass_fields__.values()  # type: ignore # noqa
             for field in fields:
                 params.append((field.name, field.type))
-        elif hasattr(cls, "__fields__"):
-            model_fields: Iterable[ModelField] = cls.__fields__.values()  # type: ignore # noqa
-            for model_field in model_fields:
-                params.append((model_field.name, model_field.annotation))
+        elif hasattr(cls, "model_fields"):
+            for field_name, model_field in cls.model_fields.items():  # type: ignore # noqa
+                params.append((field_name, model_field.annotation))  # type: ignore # noqa
         else:
             raise TypeError("Invalid type")
         task = cls(**{name: cls.parse(name, type) for name, type in params})
@@ -119,17 +119,17 @@ class TaskMixin:
 
     @classmethod
     def get_default(cls, name_: str) -> Tuple[IsDefault, Defaults]:
-        env_var = os.getenv(name_)
+        env_var = os.environ.pop(name_, None)
         if env_var is not None:
             return False, env_var
         if hasattr(cls, "__dataclass_fields__"):
             field: Field[Any] = cls.__dataclass_fields__[name_]
             result: Any = field.default
             return True, result
-        elif hasattr(cls, "__fields__"):
-            model_field: ModelField = cls.__fields__[name_]
-            default_model = model_field.get_default()
-            return True, default_model
+        elif hasattr(cls, "model_fields"):
+            model_field: FieldInfo = cls.model_fields[name_]  # type: ignore # noqa
+            default_model = model_field.get_default(call_default_factory=True)  # type: ignore # noqa
+            return True, default_model  # type: ignore
         else:
             raise TypeError("Invalid type")
 

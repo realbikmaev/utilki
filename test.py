@@ -1,5 +1,5 @@
-from tests.test_utilki import test_list_list_str_from_env
+from tests.test_utilki import test_base_model_field_factory
 
 
 if __name__ == "__main__":
-    test_list_list_str_from_env()
+    test_base_model_field_factory()
