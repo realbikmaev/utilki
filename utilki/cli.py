@@ -1,7 +1,7 @@
 from copy import deepcopy
 from click import echo, prompt, Choice as choice, group, argument
 import subprocess
-from typing import Dict, Hashable, List, TypeVar
+from typing import Dict, Hashable, List, TypeVar, Tuple
 from result import Result, Ok, Err
 
 
@@ -56,7 +56,12 @@ def append(map: Dict[K, List[V]], key: K, value: V) -> None:
 
 
 def sort_versions(versions: List[str]) -> List[str]:
-    versions.sort(key=lambda x: tuple(map(int, x.split("."))), reverse=True)
+    sorted_versions: List[Tuple[int, ...]] = []
+    for version in versions:
+        try:
+            sorted_versions.append(tuple(map(int, version.split("."))))
+        except ValueError:
+            pass
     return versions
 
 
