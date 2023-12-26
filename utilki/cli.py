@@ -56,13 +56,19 @@ def append(map: Dict[K, List[V]], key: K, value: V) -> None:
 
 
 def version_key(version: str) -> Tuple[int, ...]:
-    try:
-        return tuple(map(int, version.split(".")))
-    except ValueError:
-        return tuple()
+    return tuple(map(int, version.split(".")))
 
 
 def sort_versions(versions: List[str]) -> List[str]:
+    new_versions = []
+
+    for version in versions:
+        try:
+            int(version.split("."))  # type: ignore
+            new_versions.append(version)
+        except ValueError:
+            pass
+
     versions.sort(key=lambda x: version_key(x), reverse=True)
     return versions
 
