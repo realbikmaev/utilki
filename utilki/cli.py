@@ -64,29 +64,37 @@ def sort_versions(versions: List[str]) -> List[str]:
 
     for version in versions:
         try:
-            int(version.split("."))  # type: ignore
+            version_key(version)
             new_versions.append(version)
         except ValueError:
-            pass
+            continue
 
-    versions.sort(key=lambda x: version_key(x), reverse=True)
-    return versions
+    new_versions.sort(key=lambda x: version_key(x), reverse=True)
+    return new_versions
 
 
 def list_versions() -> None:
     versions: List[str] = sh("pyenv install --list").unwrap_or([""])
     global _all_versions
+    filtered = []
     for version in versions[1:]:
         if version.startswith("2.") or version.startswith("3."):
-            if "dev" not in version and "rc" not in version:
-                _all_versions.append(version)
-    sort_versions(_all_versions)
+            try:
+                version_key(version)
+                if "dev" not in version and "rc" not in version:
+                    filtered.append(version)
+            except ValueError:
+                continue
+    _all_versions = sort_versions(filtered)
 
 
 def newest_version():
-    versions = sh("pyenv versions").unwrap_or(["system"])
+    versions = sh("pyenv versions --bare --skip-envs").unwrap_or(["system"])
     numeric = [ve for ve in versions if "/" not in ve and len(ve) > 0]
-    numeric.remove("system")
+    try:
+        numeric.remove("system")
+    except:
+        pass
     sort_versions(numeric)
     global _installed
     global _all_versions
@@ -101,7 +109,7 @@ if len(_all_versions) == 0:
     list_versions()
 
 if len(_installed) == 0:
-    newest_version()
+    newest = newest_version()
 
 
 def not_installed(version: str) -> Result[str, str]:
