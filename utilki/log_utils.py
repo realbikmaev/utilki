@@ -17,6 +17,17 @@ def get_global(name: str, default: Any = None) -> Any:
         return None if default is None else default
 
 
+def incr(name: str) -> Any:
+    value = get_global(name)
+    if value is None:
+        set_global(name, 0)
+        return 0
+    else:
+        value += 1
+        set_global(name, value)
+        return value
+
+
 class _logger:
     def __init__(self, name: str) -> None:
         set_global("_logger_name", name)
@@ -237,53 +248,61 @@ class progress(Generic[A]):
 
 
 if __name__ == "__main__":
+    print(get_global("asdf"))
+    set_global("asdf", 0)
+    incr("asdf")
+    print(get_global("asdf"))
 
-    def rev(msg):
-        print(msg[::-1])
-        pass
+    print(get_global("zcxv"))
+    incr("zcxv")
+    print(get_global("zcxv"))
 
-    import time
+    # def rev(msg):
+    #     print(msg[::-1])
+    #     pass
 
-    logger("test").info().basic_config()
+    # import time
 
-    # too lazy rn to make a proper test suite
-    for i in progress(range(101), name="test1"):
-        time.sleep(0.001)
+    # logger("test").info().basic_config()
 
-    for i in progress(
-        range(7),
-        name="test2",
-        print_idx=True,
-        num_steps=11,
-        precision=3,
-    ):
-        time.sleep(0.001)
+    # # too lazy rn to make a proper test suite
+    # for i in progress(range(101), name="test1"):
+    #     time.sleep(0.001)
 
-    for idx, i in enumerate(progress(["a", "b", "c"], name="test3")):
-        time.sleep(0.001)
+    # for i in progress(
+    #     range(7),
+    #     name="test2",
+    #     print_idx=True,
+    #     num_steps=11,
+    #     precision=3,
+    # ):
+    #     time.sleep(0.001)
 
-    for i in progress([0.1, 0.2, 0.3], name="test4"):
-        log(i)
-        time.sleep(0.001)
+    # for idx, i in enumerate(progress(["a", "b", "c"], name="test3")):
+    #     time.sleep(0.001)
 
-    log("hello world")
+    # for i in progress([0.1, 0.2, 0.3], name="test4"):
+    #     log(i)
+    #     time.sleep(0.001)
 
-    # logging.getLogger("ayy").setLevel(logging.INFO)
-    logger("ayy").info().fn_info().basic_config()
+    # log("hello world")
 
-    set_global("ayy", "lmao")
-    value = get_global("ayy")
-    log(value)
+    # # logging.getLogger("ayy").setLevel(logging.INFO)
+    # logger("ayy").info().fn_info().basic_config()
 
-    from datetime import datetime
+    # set_global("ayy", "lmao")
+    # value = get_global("ayy")
+    # log(value)
 
-    err(datetime.now())
+    # from datetime import datetime
 
-    for i in progress([], name="test5"):
-        time.sleep(0.001)
+    # err(datetime.now())
 
-    a = pd.DataFrame([{"a": 1, "b": 2}, {"a": 3, "b": 4}])
+    # for i in progress([], name="test5"):
+    #     time.sleep(0.001)
 
-    for idx, row in progress(a, name="test6"):  # type: ignore
-        log(row)
-        time.sleep(0.001)
+    # a = pd.DataFrame([{"a": 1, "b": 2}, {"a": 3, "b": 4}])
+
+    # for idx, row in progress(a, name="test6"):  # type: ignore
+    #     log(row)
+    #     time.sleep(0.001)
