@@ -56,7 +56,7 @@ class _logger:
         set_global("_use_print", use_print)
         return self
 
-    def callback(self, callback: Callable[[], None]):
+    def callback(self, callback: Callable[[str], None]):
         set_global("_callback", callback)
         return self
 
