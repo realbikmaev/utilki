@@ -1,45 +1,8 @@
 from copy import deepcopy
 from click import echo, prompt, Choice as choice, group, argument
-import subprocess
 from typing import Dict, Hashable, List, TypeVar, Tuple
 from result import Result, Ok, Err
-
-
-def sh(cmd: str, default: List[str] = []) -> Result[List[str], str]:
-    process = subprocess.run(
-        [arg for arg in cmd.split(" ")],
-        capture_output=True,
-        text=True,
-    )
-    match process.returncode:
-        case 0:
-            return Ok([li.strip() for li in process.stdout.splitlines()])
-        case _:
-            echo(process.stderr)
-            if default:
-                return Ok(default)
-            else:
-                return Err(process.stderr)
-
-
-def proc(cmd: str, timeout: float | None = None) -> Result[List[str], str]:
-    process = subprocess.Popen(
-        [arg for arg in cmd.split(" ")],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-    )
-    if process.stdout is not None:
-        for line in iter(process.stdout.readline, ""):
-            echo(line.strip())
-    return_code = process.wait(timeout=timeout)
-    match return_code:
-        case 0:
-            return Ok([])
-        case _:
-            if process.stderr is not None:
-                return Err("\n".join(process.stderr.readlines()))
-    return Err("failed!")
+from .log_utils import sh, proc
 
 
 K = TypeVar("K", bound=Hashable)
@@ -60,7 +23,7 @@ def version_key(version: str) -> Tuple[int, ...]:
 
 
 def sort_versions(versions: List[str]) -> List[str]:
-    new_versions = []
+    new_versions: List[str] = []
 
     for version in versions:
         try:
@@ -69,14 +32,14 @@ def sort_versions(versions: List[str]) -> List[str]:
         except ValueError:
             continue
 
-    new_versions.sort(key=lambda x: version_key(x), reverse=True)
+    new_versions.sort(key=version_key, reverse=True)
     return new_versions
 
 
 def list_versions() -> None:
     versions: List[str] = sh("pyenv install --list").unwrap_or([""])
     global _all_versions
-    filtered = []
+    filtered: List[str] = []
     for version in versions[1:]:
         if version.startswith("2.") or version.startswith("3."):
             try:
@@ -93,7 +56,7 @@ def newest_version():
     numeric = [ve for ve in versions if "/" not in ve and len(ve) > 0]
     try:
         numeric.remove("system")
-    except:
+    except Exception:
         pass
     sort_versions(numeric)
     global _installed
@@ -144,7 +107,15 @@ def cli():
     type=choice(_all_versions),
     default=_installed[0],
 )
-def venv(version: str):
+@argument(
+    "venv",
+    type=str,
+    default="",
+)
+def create(version: str, venv: str = ""):
+    """
+    ut create [version] [venv]
+    """
     global _all_versions
     global _installed
 
@@ -168,7 +139,7 @@ def venv(version: str):
         print("lmao")
         echo(f"python version {version} is not installed")
 
-    venv = prompt("enter venv name", type=str)
+    venv = venv if venv else prompt("enter venv name", type=str)
     create = sh(f"pyenv virtualenv {version} {venv}")
 
     match create:
@@ -177,6 +148,36 @@ def venv(version: str):
         case Err(e):
             echo(e)
             echo("failed to create new venv! 😭")
+
+
+@cli.command()
+@argument(
+    "venv",
+    type=str,
+    default="",
+)
+def delete(venv: str = ""):
+    """
+    ut delete [venv]
+    """
+    venv = venv if venv else prompt("enter venv name", type=str)
+    delete_ = proc(f"pyenv virtualenv-delete -f {venv}")
+
+    match delete_:
+        case Ok(_):
+            echo(f"deleted venv {venv}")
+        case Err(e):
+            echo(e)
+            echo("failed to delete venv! 😭")
+
+
+@cli.command()
+def v():
+    """
+    ut v
+    """
+    versions = sh("pyenv versions --bare --skip-aliases").unwrap_or([""])
+    echo("\n".join(versions))
 
 
 if __name__ == "__main__":

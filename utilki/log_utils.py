@@ -1,9 +1,49 @@
 from collections.abc import Sized, Iterator
 import logging
+import subprocess
 import sys
 import traceback
-from typing import Any, Callable, TypeVar, Generic, Iterable
+from typing import Any, Callable, List, TypeVar, Generic, Iterable
+from click import echo
 import pandas as pd
+from result import Err, Ok, Result
+
+
+def sh(cmd: str, default: List[str] = []) -> Result[List[str], str]:
+    process = subprocess.run(
+        [arg for arg in cmd.split(" ")],
+        capture_output=True,
+        text=True,
+    )
+    match process.returncode:
+        case 0:
+            return Ok([li.strip() for li in process.stdout.splitlines()])
+        case _:
+            echo(process.stderr)
+            if default:
+                return Ok(default)
+            else:
+                return Err(process.stderr)
+
+
+def proc(cmd: str, timeout: float | None = None) -> Result[List[str], str]:
+    process = subprocess.Popen(
+        [arg for arg in cmd.split(" ")],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    if process.stdout is not None:
+        for line in iter(process.stdout.readline, ""):
+            echo(line.strip())
+    return_code = process.wait(timeout=timeout)
+    match return_code:
+        case 0:
+            return Ok([])
+        case _:
+            if process.stderr is not None:
+                return Err("\n".join(process.stderr.readlines()))
+    return Err("failed!")
 
 
 def set_global(name: str, value: Any):
