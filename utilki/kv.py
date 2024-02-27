@@ -34,6 +34,20 @@ class KV(MutableMapping[str, Any]):
             """
         )
 
+    def incr(self, key: str, amount: int = 1) -> int:
+        with self.lock():
+            val = self[key]
+            val += amount
+            self[key] = val
+            return val
+
+    def decr(self, key: str, amount: int = 1) -> int:
+        with self.lock():
+            val = self[key]
+            val -= amount
+            self[key] = val
+            return val
+
     def clone(self, table: str) -> "KV":
         return KV(self._db_uri, table)
 
