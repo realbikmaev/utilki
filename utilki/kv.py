@@ -5,11 +5,12 @@ shamelessly stolen from https://pypi.org/project/kv/
 now it's typed + we can add default values
 """
 
-from contextlib import contextmanager
+import json
 import sqlite3
 from collections.abc import MutableMapping
+from contextlib import contextmanager
+from logging import Logger
 from typing import Any
-import json
 
 
 class KV(MutableMapping[str, Any]):
@@ -19,10 +20,12 @@ class KV(MutableMapping[str, Any]):
         table: str = "kv",
         default: Any = None,
         timeout: int = 5,
+        logger: Logger | None = None,
     ):
         self._db_uri = db
         self._table = table
         self._default = default
+        self._logger = logger
         self._db = sqlite3.connect(db, timeout=timeout)
         self._db.isolation_level = None
         self._attr: str = None  # type: ignore
@@ -131,6 +134,18 @@ class KV(MutableMapping[str, Any]):
     def dict(self):
         return dict(self.items())
 
+    def ratio(
+        self,
+        *,
+        of: str,
+        over: str,
+        eps: float = 1e-8,
+    ) -> float:
+        _ratio = self[of] / self[over] + eps
+        if self._logger:
+            self._logger.info(f"{of}/{over}: {_ratio:.2f}")
+        return _ratio
+
 
 if __name__ == "__main__":
     kv = KV(default=0)
@@ -148,3 +163,5 @@ if __name__ == "__main__":
     print(f"f: {kv['f']}")
 
     print(kv.dict())
+
+    print(kv.ratio(of="a", over="b"))
