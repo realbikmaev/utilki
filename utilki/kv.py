@@ -161,7 +161,5 @@ if __name__ == "__main__":
 
     kv.f += 1  # type: ignore
     print(f"f: {kv['f']}")
-
     print(kv.dict())
-
     print(kv.ratio(of="a", over="b"))
