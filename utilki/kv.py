@@ -136,12 +136,11 @@ class KV(MutableMapping[str, Any]):
 
     def ratio(
         self,
-        *,
         of: str,
         over: str,
         eps: float = 1e-8,
     ) -> float:
-        _ratio = self[of] / self[over] + eps
+        _ratio = self[of] / (self[over] + eps)
         if self._logger:
             self._logger.info(f"{of}/{over}: {_ratio:.2f}")
         return _ratio
