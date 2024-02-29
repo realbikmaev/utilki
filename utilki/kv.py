@@ -128,6 +128,9 @@ class KV(MutableMapping[str, Any]):
         val += other
         self[self._attr] = val
 
+    def dict(self):
+        return dict(self.items())
+
 
 if __name__ == "__main__":
     kv = KV(default=0)
@@ -143,3 +146,5 @@ if __name__ == "__main__":
 
     kv.f += 1  # type: ignore
     print(f"f: {kv['f']}")
+
+    print(kv.dict())
