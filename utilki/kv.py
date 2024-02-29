@@ -139,10 +139,19 @@ class KV(MutableMapping[str, Any]):
         of: str,
         over: str,
         eps: float = 1e-8,
+        total: bool = False,
+        msg: str = "",
     ) -> float:
-        _ratio = self[of] / (self[over] + eps)
+        if total:
+            _ratio = self[of] / (self[of] + self[over] + eps)
+            if not msg:
+                msg = f"{of}/({of}+{over})"
+        else:
+            _ratio = self[of] / (self[over] + eps)
+            if not msg:
+                msg = f"{of}/{over}"
         if self._logger:
-            self._logger.info(f"{of}/{over}: {_ratio:.2f}")
+            self._logger.info(f"{msg}: {_ratio:.2f}")
         return _ratio
 
 
