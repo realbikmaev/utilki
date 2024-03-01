@@ -107,13 +107,17 @@ class KV(MutableMapping[str, Any]):
             raise KeyError
 
     @contextmanager
-    def lock(self):
+    def lock(self, default: Any = None):
         if not self._locks:
             self._execute("BEGIN IMMEDIATE TRANSACTION")
         self._locks += 1
+        previous_default = self._default
+        if default is not None:
+            self._default = default
         try:
-            yield
+            yield self
         finally:
+            self._default = previous_default
             self._locks -= 1
             if not self._locks:
                 self._execute("COMMIT")
@@ -145,14 +149,25 @@ class KV(MutableMapping[str, Any]):
         if total:
             _ratio = self[of] / (self[of] + self[over] + eps)
             if not msg:
-                msg = f"{of}/({of}+{over})"
+                msg = f"{of}/({of} + {over})"
         else:
             _ratio = self[of] / (self[over] + eps)
             if not msg:
                 msg = f"{of}/{over}"
         if self._logger:
-            self._logger.info(f"{msg}: {_ratio:.2f}")
+            self._logger.info(**{msg: f"{_ratio:.2%}"})  # type: ignore
         return _ratio
+
+    # TODO impl << operator
+    # def __lshift__(self, other: Any) -> None:
+    #     self._default = []
+    #     if self._attr is None:  # type: ignore
+    #         raise AttributeError(
+    #             f"'{type(self).__name__}' object has no attribute '_attr'"
+    #         )
+    #     val: list[Any] = self[self._attr]
+    #     val.append(other)
+    #     self[self._attr] = val
 
 
 if __name__ == "__main__":
