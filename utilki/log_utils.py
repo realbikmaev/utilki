@@ -217,12 +217,14 @@ def err(message: Any):
     logger.error(message)
 
 
-def tb():
+def tb(return_str: bool = False):
     if sys.exc_info()[0]:  # type: ignore # noqa
         message = traceback.format_exc()
         logger = _get_logger()
         _if_level(logging.ERROR, message)
         logger.error(message)
+        if return_str:
+            return message
 
 
 A = TypeVar("A")

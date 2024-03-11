@@ -11,6 +11,7 @@ from collections.abc import MutableMapping
 from contextlib import contextmanager
 from logging import Logger
 from typing import Any
+from copy import deepcopy
 
 
 class KV(MutableMapping[str, Any]):
@@ -74,10 +75,11 @@ class KV(MutableMapping[str, Any]):
             """,
             (key,),
         ):
-            return json.loads(row[0])
+            result = json.loads(row[0])
+            return result
         else:
             if self._default is not None:
-                return self._default
+                return deepcopy(self._default)
             else:
                 raise KeyError
 
@@ -111,13 +113,13 @@ class KV(MutableMapping[str, Any]):
         if not self._locks:
             self._execute("BEGIN IMMEDIATE TRANSACTION")
         self._locks += 1
-        previous_default = self._default
+        previous_default = deepcopy(self._default)
         if default is not None:
-            self._default = default
+            self._default = deepcopy(default)
         try:
             yield self
         finally:
-            self._default = previous_default
+            self._default = deepcopy(previous_default)
             self._locks -= 1
             if not self._locks:
                 self._execute("COMMIT")
@@ -157,17 +159,6 @@ class KV(MutableMapping[str, Any]):
         if self._logger:
             self._logger.info(**{msg: f"{_ratio:.2%}"})  # type: ignore
         return _ratio
-
-    # TODO impl << operator
-    # def __lshift__(self, other: Any) -> None:
-    #     self._default = []
-    #     if self._attr is None:  # type: ignore
-    #         raise AttributeError(
-    #             f"'{type(self).__name__}' object has no attribute '_attr'"
-    #         )
-    #     val: list[Any] = self[self._attr]
-    #     val.append(other)
-    #     self[self._attr] = val
 
 
 if __name__ == "__main__":
